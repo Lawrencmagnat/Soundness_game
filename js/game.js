@@ -1,6 +1,6 @@
 // ===== DOM ELEMENTS =====
 const board = document.getElementById('gameBoard');
-const player = document.querySelector('.player');
+const player = document.getElementById('player');
 const scoreEl = document.getElementById('score');
 const timerEl = document.getElementById('timer');
 const livesEl = document.getElementById('lives');
@@ -15,93 +15,67 @@ const sidebarHistory = document.getElementById('sidebarHistory');
 
 // ===== GAME STATE =====
 let playerX = 327.5, playerY = 227.5;
-let score = 0, timeLeft = 180, lives = 5, moves = 0, collected = 0;
+let score = 0, displayScore = 0, timeLeft = 180, lives = 5, moves = 0, collected = 0;
 let level = 1, combo = 0, bestCombo = 0;
 let gameActive = false, paused = false;
 let proofs = [], powerups = [], moveHistory = [], achievements = [];
 let keys = {}, activePowerups = {}, powerupTimers = {};
-let gameInterval, spawnInterval, powerupInterval, timerInterval;
+let gameInterval, spawnInterval, powerupInterval, timerInterval, magnetInterval;
 let gameMode = 'quick', muted = false;
 let highScore = 0, scoreHistory = [], comboMultiplier = 1;
 
 // Mobile touch control state
-let touchControlType = null; // 'swipe' or 'joystick'
+let touchControlSetup = false;
 let isMobile = window.innerWidth <= 768 || /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
-let touchStartX = 0, touchStartY = 0;
-let joystickActive = false, joystickCenterX = 0, joystickCenterY = 0;
 
-const boardWidth = 700, boardHeight = 500;
+// Get actual board dimensions
+let boardWidth = 700, boardHeight = 500;
 const playerSize = 45, moveSpeed = 5;
 
-player.style.left = playerX + 'px';
-player.style.top = playerY + 'px';
+// Update board dimensions based on actual size
+function updateBoardDimensions() {
+    const boardRect = board.getBoundingClientRect();
+    boardWidth = boardRect.width;
+    boardHeight = boardRect.height;
+    console.log('Board dimensions:', boardWidth, 'x', boardHeight);
+}
+
+// Use transforms for better performance
+player.style.transform = `translate(${playerX}px, ${playerY}px)`;
 
 const audioContext = new (window.AudioContext || window.webkitAudioContext)();
 
-console.log('Mobile detected:', isMobile);
-console.log('Screen width:', window.innerWidth);
+console.log('🎮 Game initialized - Mobile:', isMobile);
 
 // ===== SIDEBAR MENU HANDLERS =====
 function setupSidebar() {
-    console.log('=== SIDEBAR SETUP DEBUG ===');
-    
     const ham = document.getElementById('hamburger');
     const sidebar = document.getElementById('scoreSidebar');
     const closeBtn = document.getElementById('closeSidebar');
     
-    console.log('Hamburger found:', ham);
-    console.log('Sidebar found:', sidebar);
-    console.log('Close button found:', closeBtn);
+    if (!ham || !sidebar || !closeBtn) return;
     
-    if (!ham) {
-        console.error('❌ HAMBURGER NOT FOUND! Check your HTML for id="hamburger"');
-        return;
-    }
-    
-    if (!sidebar) {
-        console.error('❌ SIDEBAR NOT FOUND! Check your HTML for id="scoreSidebar"');
-        return;
-    }
-    
-    if (!closeBtn) {
-        console.error('❌ CLOSE BUTTON NOT FOUND! Check your HTML for id="closeSidebar"');
-        return;
-    }
-    
-    console.log('✅ All elements found!');
-    
-    // Open sidebar - use 'active' class to match CSS
-    ham.addEventListener('click', function(e) {
-        console.log('🎯 HAMBURGER CLICKED!');
+    ham.addEventListener('click', (e) => {
         e.preventDefault();
         e.stopPropagation();
         sidebar.classList.add('active');
-        console.log('Sidebar classes:', sidebar.classList);
     });
     
-    // Close sidebar
-    closeBtn.addEventListener('click', function(e) {
-        console.log('❌ CLOSE BUTTON CLICKED!');
+    closeBtn.addEventListener('click', (e) => {
         e.preventDefault();
         e.stopPropagation();
         sidebar.classList.remove('active');
-        console.log('Sidebar classes:', sidebar.classList);
     });
     
-    // Close on outside click
-    document.addEventListener('click', function(e) {
+    document.addEventListener('click', (e) => {
         if (sidebar.classList.contains('active') && 
             !sidebar.contains(e.target) && 
             e.target !== ham) {
-            console.log('🌍 OUTSIDE CLICK - closing sidebar');
             sidebar.classList.remove('active');
         }
     });
-    
-    console.log('✅ Sidebar setup complete!');
 }
 
-// Wait for DOM to be fully loaded
 if (document.readyState === 'loading') {
     document.addEventListener('DOMContentLoaded', setupSidebar);
 } else {
@@ -115,7 +89,6 @@ async function loadData() {
         if (hs && hs.value) {
             highScore = parseInt(hs.value);
             highScoreEl.textContent = highScore;
-            console.log('✅ High score loaded:', highScore);
         }
     } catch (e) {
         console.log('No high score saved yet');
@@ -126,7 +99,6 @@ async function loadData() {
         if (hist && hist.value) {
             scoreHistory = JSON.parse(hist.value);
             updateSidebar();
-            console.log('✅ Score history loaded:', scoreHistory.length, 'games');
         }
     } catch (e) {
         console.log('No score history saved yet');
@@ -141,9 +113,8 @@ async function saveData() {
         highScoreEl.textContent = highScore;
         try {
             await window.storage.set('proof-collector-highscore', score.toString());
-            console.log('✅ New high score saved:', highScore);
         } catch (e) {
-            console.error('❌ Could not save high score:', e);
+            console.error('Could not save high score:', e);
         }
     }
     
@@ -160,9 +131,8 @@ async function saveData() {
         
         try {
             await window.storage.set('proof-collector-history', JSON.stringify(scoreHistory));
-            console.log('✅ Score history saved:', scoreHistory.length, 'games');
         } catch (e) {
-            console.error('❌ Could not save history:', e);
+            console.error('Could not save history:', e);
         }
         
         updateSidebar();
@@ -251,6 +221,15 @@ function playSound(type) {
             osc.start(now);
             osc.stop(now + 0.3);
             break;
+        case 'combo':
+            const freq = 400 + (combo * 50);
+            osc.frequency.setValueAtTime(freq, now);
+            osc.frequency.exponentialRampToValueAtTime(freq * 1.5, now + 0.12);
+            gain.gain.setValueAtTime(0.25, now);
+            gain.gain.exponentialRampToValueAtTime(0.01, now + 0.12);
+            osc.start(now);
+            osc.stop(now + 0.12);
+            break;
     }
 }
 
@@ -265,25 +244,40 @@ function togglePause() {
     document.getElementById('pauseBtn').textContent = paused ? '▶️ Resume' : '⏸️ Pause';
 }
 
+// ===== SMOOTH SCORE ANIMATION =====
+function animateScore() {
+    if (displayScore < score) {
+        displayScore = Math.min(displayScore + Math.ceil((score - displayScore) / 10), score);
+        scoreEl.textContent = displayScore;
+        scoreEl.parentElement.classList.add('highlight');
+    } else {
+        scoreEl.parentElement.classList.remove('highlight');
+    }
+}
+
 // ===== GAME FUNCTIONS =====
 function startGame(mode) {
-    console.log('startGame called with mode:', mode);
-    console.log('isMobile:', isMobile);
-    console.log('touchControlType:', touchControlType);
+    console.log('🎮 Starting game mode:', mode);
     
-    // Check if mobile and no control type selected yet
-    if (isMobile && !touchControlType) {
-        console.log('Showing touch control selection...');
-        showTouchControlSelection(mode);
-        return;
+    // Update board dimensions
+    updateBoardDimensions();
+    
+    if (isMobile && !touchControlSetup) {
+        setupSwipeControls();
+        touchControlSetup = true;
     }
     
-    console.log('Starting game normally...');
-    
+    // Reset game state
     gameMode = mode;
     gameActive = true;
     paused = false;
-    score = moves = collected = level = combo = bestCombo = 0;
+    score = 0;
+    displayScore = 0;
+    moves = 0;
+    collected = 0;
+    level = 1;
+    combo = 0;
+    bestCombo = 0;
     lives = 5;
     proofs = [];
     powerups = [];
@@ -300,36 +294,37 @@ function startGame(mode) {
     
     document.querySelectorAll('.proof, .powerup, .notification').forEach(p => p.remove());
     
-    introEl.style.display = 'none';
-    document.getElementById('startBtn').textContent = 'Playing...';
-    document.getElementById('startBtn').disabled = true;
-    document.getElementById('pauseBtn').disabled = false;
-    
-    board.className = '';
-    playerX = 327.5;
-    playerY = 227.5;
-    player.style.left = playerX + 'px';
-    player.style.top = playerY + 'px';
-    
-    // Show joystick if selected
-    if (isMobile && touchControlType === 'joystick') {
-        console.log('Showing joystick...');
-        showJoystick();
-    } else if (isMobile && touchControlType === 'swipe') {
-        console.log('Swipe controls active...');
+    // Hide intro screen
+    if (introEl) {
+        introEl.style.display = 'none';
     }
     
+    // Enable game controls
+    document.getElementById('pauseBtn').disabled = false;
+    document.getElementById('exitBtn').disabled = false;
+    
+    // Reset board and player position
+    board.className = '';
+    playerX = (boardWidth - playerSize) / 2;
+    playerY = (boardHeight - playerSize) / 2;
+    player.style.transform = `translate(${playerX}px, ${playerY}px)`;
+    player.classList.remove('invincible', 'combo-glow');
+    
+    // Spawn initial proofs
     spawnProof();
     spawnProof();
     spawnProof();
     
+    // Start game loop
     gameInterval = setInterval(() => {
         if (!paused) {
             movePlayer();
             checkLevelUp();
+            animateScore();
         }
     }, 1000/60);
     
+    // Start timer
     timerInterval = setInterval(() => {
         if (!paused && gameMode !== 'endless') {
             timeLeft--;
@@ -338,13 +333,16 @@ function startGame(mode) {
         }
     }, 1000);
     
+    // Start spawning proofs
     spawnInterval = setInterval(() => {
         if (!paused) {
             spawnProof();
             if (level > 2 && Math.random() > 0.6) spawnProof();
+            if (level > 5 && Math.random() > 0.7) spawnProof();
         }
-    }, 1200);
+    }, Math.max(800, 1200 - (level * 50)));
     
+    // Start spawning powerups
     powerupInterval = setInterval(() => {
         if (!paused) spawnPowerup();
     }, 7000);
@@ -354,13 +352,21 @@ function startGame(mode) {
 }
 
 function updateDisplay() {
-    scoreEl.textContent = score;
     livesEl.textContent = lives;
     movesEl.textContent = moves;
     levelEl.textContent = level;
     comboEl.textContent = combo;
     
     livesEl.parentElement.className = 'stat lives' + (lives <= 2 ? ' danger' : '');
+    
+    // Add glow effect on high combos
+    if (combo >= 10) {
+        comboEl.parentElement.classList.add('glow');
+        player.classList.add('combo-glow');
+    } else {
+        comboEl.parentElement.classList.remove('glow');
+        player.classList.remove('combo-glow');
+    }
     
     if (gameMode !== 'endless') {
         const min = Math.floor(timeLeft / 60);
@@ -383,16 +389,21 @@ function updatePowerupDisplay() {
                 shield: '🛡️ Shield',
                 freeze: '❄️ Freeze',
                 multiplier: '⭐ 2x Points',
-                'combo-boost': '🔷 Soundness 2x'
+                'combo-boost': '🔷 Soundness 2x',
+                'magnet': '🧲 Magnet'
             };
             
             indicator.textContent = icons[type] || type;
             
+            // Add progress bar
             if (powerupTimers[type]) {
-                const timeLeft = Math.ceil((powerupTimers[type] - Date.now()) / 1000);
-                if (timeLeft > 0) {
-                    indicator.textContent += ` (${timeLeft}s)`;
-                }
+                const progress = document.createElement('div');
+                progress.className = 'powerup-progress';
+                const timeRemaining = powerupTimers[type] - Date.now();
+                const duration = type === 'shield' ? 12000 : (type === 'freeze' ? 6000 : (type === 'combo-boost' ? 15000 : (type === 'magnet' ? 10000 : 12000)));
+                const percent = (timeRemaining / duration) * 100;
+                progress.style.width = percent + '%';
+                indicator.appendChild(progress);
             }
             
             powerupsEl.appendChild(indicator);
@@ -405,7 +416,7 @@ function movePlayer() {
 
     let moved = false;
     
-    // Keyboard controls (desktop)
+    // Keyboard controls
     if (keys['arrowleft'] || keys['a']) {
         playerX = Math.max(0, playerX - moveSpeed);
         moved = true;
@@ -423,8 +434,8 @@ function movePlayer() {
         moved = true;
     }
 
-    player.style.left = playerX + 'px';
-    player.style.top = playerY + 'px';
+    // Use transforms for smoother performance
+    player.style.transform = `translate(${playerX}px, ${playerY}px)`;
     
     if (moved && Math.random() > 0.85) {
         createTrail();
@@ -451,9 +462,18 @@ function spawnProof() {
     proof.textContent = isValid ? '✓' : '✗';
     proof.dataset.valid = isValid;
     
-    const proofSize = 32;
-    const x = Math.random() * (boardWidth - proofSize);
-    const y = Math.random() * (boardHeight - proofSize);
+    // Use smaller size on mobile and add safety margin
+    const proofSize = isMobile ? 24 : 28;
+    const safetyMargin = 10;
+    
+    // Ensure proof spawns well within boundaries
+    const maxX = boardWidth - proofSize - safetyMargin;
+    const maxY = boardHeight - proofSize - safetyMargin;
+    const minPos = safetyMargin;
+    
+    const x = Math.max(minPos, Math.min(maxX, Math.random() * maxX));
+    const y = Math.max(minPos, Math.min(maxY, Math.random() * maxY));
+    
     proof.style.left = x + 'px';
     proof.style.top = y + 'px';
     
@@ -475,10 +495,97 @@ function spawnProof() {
     }, 15000);
 }
 
+// ===== MAGNET EFFECT - ATTRACT AND AUTO-COLLECT =====
+function updateMagnetEffect() {
+    if (!activePowerups.magnet) return;
+    
+    proofs.forEach((proof, index) => {
+        if (!proof.valid || !proof.element.parentNode) return;
+        
+        const proofSize = isMobile ? 28 : 32;
+        const dx = (playerX + playerSize/2) - (proof.x + proofSize/2);
+        const dy = (playerY + playerSize/2) - (proof.y + proofSize/2);
+        const distance = Math.sqrt(dx * dx + dy * dy);
+        
+        // Attract if within range
+        if (distance < 200) {
+            proof.x += dx * 0.05;
+            proof.y += dy * 0.05;
+            proof.element.style.left = proof.x + 'px';
+            proof.element.style.top = proof.y + 'px';
+        }
+        
+        // Auto-collect when close enough
+        if (distance < 60) {
+            collectProof(proof, index, true);
+        }
+    });
+}
+
+function collectProof(proof, index, isMagnet = false) {
+    moves++;
+    movesEl.textContent = moves;
+    movesEl.parentElement.classList.add('highlight');
+    setTimeout(() => movesEl.parentElement.classList.remove('highlight'), 500);
+    
+    moveHistory.push({
+        type: 'valid',
+        moveNumber: moves
+    });
+    
+    proof.element.classList.add('collected');
+    
+    combo++;
+    const basePoints = 10;
+    const comboBonus = combo >= 5 ? Math.floor(combo / 5) * 5 : 0;
+    const magnetBonus = isMagnet ? 5 : 0; // Bonus for magnet collection
+    const multiplier = (activePowerups.multiplier ? 2 : 1) * comboMultiplier;
+    const points = (basePoints + comboBonus + magnetBonus) * multiplier;
+    
+    score += points;
+    collected++;
+    
+    createParticles(proof.x, proof.y, '#4CAF50', isMobile ? 8 : 15);
+    showFeedback(`+${points}`, proof.x, proof.y, isMagnet ? '#ed64a6' : '#4CAF50');
+    playSound('combo');
+    
+    if (combo > bestCombo) bestCombo = combo;
+    
+    // Combo milestones
+    if (combo === 5) {
+        showNotification('🔥 5x COMBO!');
+        achievements.push('🔥 5x Combo Achiever');
+    } else if (combo === 10) {
+        showNotification('🔥🔥 10x COMBO!');
+        createConfetti();
+        board.classList.add('shake');
+        setTimeout(() => board.classList.remove('shake'), 300);
+        achievements.push('🔥🔥 10x Combo Master');
+    } else if (combo === 15) {
+        showNotification('🔥🔥🔥 MEGA COMBO!');
+        createConfetti();
+        board.classList.add('shake');
+        setTimeout(() => board.classList.remove('shake'), 300);
+        achievements.push('🔥🔥🔥 Mega Combo Legend');
+    } else if (combo >= 20) {
+        showNotification('🔥🔥🔥🔥 LEGENDARY!');
+        createConfetti();
+        achievements.push('👑 Legendary Combo God');
+    }
+    
+    updateDisplay();
+    
+    setTimeout(() => {
+        proof.element.remove();
+    }, 350);
+    
+    proofs.splice(index, 1);
+}
+
 function spawnPowerup() {
     if (!gameActive || paused || powerups.length > 2) return;
 
-    const types = ['shield', 'freeze', 'multiplier', 'extralife', 'combo-boost'];
+    const types = ['shield', 'freeze', 'multiplier', 'extralife', 'combo-boost', 'magnet'];
     const type = types[Math.floor(Math.random() * types.length)];
     const powerup = document.createElement('div');
     powerup.className = `powerup ${type}`;
@@ -489,13 +596,14 @@ function spawnPowerup() {
         freeze: '❄️',
         multiplier: '⭐',
         extralife: '💛',
-        'combo-boost': '🔷'
+        'combo-boost': '🔷',
+        'magnet': '🧲'
     };
     powerup.textContent = icons[type];
     
-    const powerupSize = type === 'combo-boost' ? 45 : 40;
-    const x = Math.random() * (boardWidth - powerupSize);
-    const y = Math.random() * (boardHeight - powerupSize);
+    const powerupSize = ['combo-boost', 'magnet'].includes(type) ? (isMobile ? 38 : 45) : (isMobile ? 35 : 40);
+    const x = Math.random() * (boardWidth - powerupSize - 10) + 5;
+    const y = Math.random() * (boardHeight - powerupSize - 10) + 5;
     powerup.style.left = x + 'px';
     powerup.style.top = y + 'px';
     
@@ -512,7 +620,7 @@ function spawnPowerup() {
 }
 
 function checkCollisions() {
-    const proofSize = 32;
+    const proofSize = isMobile ? 28 : 32;
     
     proofs.forEach((proof, index) => {
         const dx = playerX + playerSize/2 - (proof.x + proofSize/2);
@@ -520,48 +628,24 @@ function checkCollisions() {
         const distance = Math.sqrt(dx * dx + dy * dy);
 
         if (distance < (playerSize/2 + proofSize/2)) {
-            moves++;
-            movesEl.textContent = moves;
-            movesEl.parentElement.classList.add('highlight');
-            setTimeout(() => movesEl.parentElement.classList.remove('highlight'), 500);
-            
-            moveHistory.push({
-                type: proof.valid ? 'valid' : 'fake',
-                moveNumber: moves
-            });
-            
-            proof.element.classList.add('collected');
-            
             if (proof.valid) {
-                combo++;
-                const basePoints = 10;
-                const comboBonus = combo >= 5 ? Math.floor(combo / 5) * 5 : 0;
-                const multiplier = (activePowerups.multiplier ? 2 : 1) * comboMultiplier;
-                const points = (basePoints + comboBonus) * multiplier;
-                
-                score += points;
-                collected++;
-                
-                scoreEl.parentElement.classList.add('highlight');
-                setTimeout(() => scoreEl.parentElement.classList.remove('highlight'), 500);
-                
-                createParticles(proof.x, proof.y, '#4CAF50');
-                showFeedback(`+${points}`, proof.x, proof.y, '#4CAF50');
-                playSound('collect');
-                
-                if (combo > bestCombo) bestCombo = combo;
-                
-                if (combo === 5) {
-                    showNotification('🔥 5x COMBO!');
-                } else if (combo === 10) {
-                    showNotification('🔥🔥 10x COMBO!');
-                    createConfetti();
-                } else if (combo >= 15) {
-                    showNotification('🔥🔥🔥 MEGA COMBO!');
-                    createConfetti();
-                }
+                collectProof(proof, index, false);
             } else {
+                // Fake proof handling
+                moves++;
+                movesEl.textContent = moves;
+                movesEl.parentElement.classList.add('highlight');
+                setTimeout(() => movesEl.parentElement.classList.remove('highlight'), 500);
+                
+                moveHistory.push({
+                    type: 'fake',
+                    moveNumber: moves
+                });
+                
+                proof.element.classList.add('collected');
+                
                 combo = 0;
+                player.classList.remove('combo-glow');
                 score = Math.max(0, score - 5);
                 
                 if (activePowerups.shield) {
@@ -584,21 +668,26 @@ function checkCollisions() {
                         endGame();
                     }
                 }
-                createParticles(proof.x, proof.y, '#ff6b6b');
+                createParticles(proof.x, proof.y, '#ff6b6b', isMobile ? 8 : 15);
+                
+                updateDisplay();
+                
+                setTimeout(() => {
+                    proof.element.remove();
+                }, 350);
+                
+                proofs.splice(index, 1);
             }
-            
-            updateDisplay();
-            
-            setTimeout(() => {
-                proof.element.remove();
-            }, 350);
-            
-            proofs.splice(index, 1);
         }
     });
     
+    // Check magnet effect
+    if (activePowerups.magnet) {
+        updateMagnetEffect();
+    }
+    
     powerups.forEach((powerup, index) => {
-        const powerupSize = powerup.type === 'combo-boost' ? 45 : 40;
+        const powerupSize = ['combo-boost', 'magnet'].includes(powerup.type) ? (isMobile ? 38 : 45) : (isMobile ? 35 : 40);
         const dx = playerX + playerSize/2 - (powerup.x + powerupSize/2);
         const dy = playerY + playerSize/2 - (powerup.y + powerupSize/2);
         const distance = Math.sqrt(dx * dx + dy * dy);
@@ -606,8 +695,13 @@ function checkCollisions() {
         if (distance < (playerSize/2 + powerupSize/2)) {
             powerup.element.classList.add('collected');
             activatePowerup(powerup.type);
-            createParticles(powerup.x, powerup.y, '#FFD700');
+            createParticles(powerup.x, powerup.y, '#FFD700', isMobile ? 8 : 15);
             playSound('powerup');
+            
+            // Vibrate on mobile
+            if (isMobile && navigator.vibrate) {
+                navigator.vibrate(50);
+            }
             
             setTimeout(() => {
                 powerup.element.remove();
@@ -623,6 +717,11 @@ function activatePowerup(type, deactivate = false) {
         activePowerups[type] = false;
         delete powerupTimers[type];
         player.classList.remove('invincible');
+        
+        if (type === 'magnet' && magnetInterval) {
+            clearInterval(magnetInterval);
+        }
+        
         updatePowerupDisplay();
         return;
     }
@@ -631,7 +730,8 @@ function activatePowerup(type, deactivate = false) {
         shield: 12000,
         freeze: 6000,
         multiplier: 12000,
-        'combo-boost': 15000
+        'combo-boost': 15000,
+        'magnet': 10000
     };
     
     const names = {
@@ -639,7 +739,8 @@ function activatePowerup(type, deactivate = false) {
         freeze: '❄️ TIME FREEZE',
         multiplier: '⭐ 2x POINTS',
         extralife: '💛 EXTRA LIFE',
-        'combo-boost': '🔷 SOUNDNESS BOOST 2x'
+        'combo-boost': '🔷 SOUNDNESS BOOST 2x',
+        'magnet': '🧲 MAGNET ACTIVE'
     };
     
     showNotification(names[type] || type.toUpperCase());
@@ -651,7 +752,7 @@ function activatePowerup(type, deactivate = false) {
         
         const timer = setInterval(() => {
             updatePowerupDisplay();
-        }, 1000);
+        }, 100);
         
         setTimeout(() => {
             clearInterval(timer);
@@ -663,7 +764,7 @@ function activatePowerup(type, deactivate = false) {
         
         const timer = setInterval(() => {
             updatePowerupDisplay();
-        }, 1000);
+        }, 100);
         
         setTimeout(() => {
             clearInterval(timer);
@@ -677,7 +778,7 @@ function activatePowerup(type, deactivate = false) {
         
         const timer = setInterval(() => {
             updatePowerupDisplay();
-        }, 1000);
+        }, 100);
         
         setTimeout(() => {
             clearInterval(timer);
@@ -695,7 +796,7 @@ function activatePowerup(type, deactivate = false) {
         
         const timer = setInterval(() => {
             updatePowerupDisplay();
-        }, 1000);
+        }, 100);
         
         setTimeout(() => {
             clearInterval(timer);
@@ -704,14 +805,27 @@ function activatePowerup(type, deactivate = false) {
             delete powerupTimers['combo-boost'];
             updatePowerupDisplay();
         }, durations['combo-boost']);
+    } else if (type === 'magnet') {
+        activePowerups.magnet = true;
+        powerupTimers.magnet = Date.now() + durations.magnet;
+        
+        const timer = setInterval(() => {
+            updatePowerupDisplay();
+        }, 100);
+        
+        setTimeout(() => {
+            clearInterval(timer);
+            activePowerups.magnet = false;
+            delete powerupTimers.magnet;
+            updatePowerupDisplay();
+        }, durations.magnet);
     }
     
     updatePowerupDisplay();
 }
 
-function createParticles(x, y, color) {
-    const particleCount = 15;
-    for (let i = 0; i < particleCount; i++) {
+function createParticles(x, y, color, count = 15) {
+    for (let i = 0; i < count; i++) {
         const particle = document.createElement('div');
         particle.className = 'particle';
         particle.style.background = color;
@@ -720,7 +834,7 @@ function createParticles(x, y, color) {
         
         board.appendChild(particle);
         
-        const angle = (Math.PI * 2 * i) / particleCount;
+        const angle = (Math.PI * 2 * i) / count;
         const velocity = 40 + Math.random() * 20;
         const vx = Math.cos(angle) * velocity;
         const vy = Math.sin(angle) * velocity;
@@ -775,7 +889,7 @@ function showNotification(text) {
 
 function createConfetti() {
     const colors = ['#FFD700', '#FF6B6B', '#4CAF50', '#2196F3', '#9C27B0'];
-    const confettiCount = 40;
+    const confettiCount = isMobile ? 20 : 40;
     
     for (let i = 0; i < confettiCount; i++) {
         setTimeout(() => {
@@ -825,6 +939,9 @@ function checkLevelUp() {
         showNotification(`🎉 LEVEL ${level}!`);
         createConfetti();
         playSound('levelup');
+        
+        if (level === 5) achievements.push('⭐ Level 5 Champion');
+        if (level === 10) achievements.push('👑 Level 10 Master');
     }
 }
 
@@ -839,65 +956,6 @@ function getRank(s) {
 }
 
 // ===== MOBILE TOUCH CONTROLS =====
-function showTouchControlSelection(mode) {
-    console.log('showTouchControlSelection called with mode:', mode);
-    
-    // Hide intro screen first
-    introEl.style.display = 'none';
-    
-    const selection = document.createElement('div');
-    selection.className = 'touch-control-selection';
-    selection.innerHTML = `
-        <h2>📱 Choose Control Type</h2>
-        <p>How would you like to play?</p>
-        <div class="control-options">
-            <button class="control-option-btn" onclick="selectTouchControl('swipe', '${mode}')">
-                <div class="control-icon">👆</div>
-                <h3>Swipe</h3>
-                <p>Swipe in any direction to move</p>
-            </button>
-            <button class="control-option-btn" onclick="selectTouchControl('joystick', '${mode}')">
-                <div class="control-icon">🕹️</div>
-                <h3>Joystick</h3>
-                <p>Virtual joystick control</p>
-            </button>
-        </div>
-        <button class="back-btn" onclick="closeTouchControlSelection()">← Back</button>
-    `;
-    board.appendChild(selection);
-    console.log('Touch control selection screen added to DOM');
-}
-
-function selectTouchControl(type, mode) {
-    console.log('selectTouchControl called:', type, mode);
-    
-    touchControlType = type;
-    closeTouchControlSelection();
-    
-    if (type === 'swipe') {
-        console.log('Setting up swipe controls...');
-        setupSwipeControls();
-    } else if (type === 'joystick') {
-        console.log('Setting up joystick controls...');
-        setupJoystickControls();
-    }
-    
-    // Now start the game
-    setTimeout(() => {
-        startGame(mode);
-    }, 100);
-}
-
-function closeTouchControlSelection() {
-    const selection = document.querySelector('.touch-control-selection');
-    if (selection) selection.remove();
-    
-    // Show intro screen again if going back
-    if (!gameActive) {
-        introEl.style.display = 'block';
-    }
-}
-
 function setupSwipeControls() {
     let touchStartX = 0, touchStartY = 0;
     let touchEndX = 0, touchEndY = 0;
@@ -918,14 +976,12 @@ function setupSwipeControls() {
         const deltaX = touchEndX - touchStartX;
         const deltaY = touchEndY - touchStartY;
         
-        // Move player based on swipe
         if (Math.abs(deltaX) > 5 || Math.abs(deltaY) > 5) {
             const sensitivity = 0.5;
             playerX = Math.max(0, Math.min(boardWidth - playerSize, playerX + deltaX * sensitivity));
             playerY = Math.max(0, Math.min(boardHeight - playerSize, playerY + deltaY * sensitivity));
             
-            player.style.left = playerX + 'px';
-            player.style.top = playerY + 'px';
+            player.style.transform = `translate(${playerX}px, ${playerY}px)`;
             
             if (Math.random() > 0.9) createTrail();
             
@@ -933,87 +989,6 @@ function setupSwipeControls() {
             touchStartY = touchEndY;
         }
     }, { passive: false });
-}
-
-function setupJoystickControls() {
-    // Joystick will be created when game starts
-}
-
-function showJoystick() {
-    const joystick = document.createElement('div');
-    joystick.className = 'joystick-container';
-    joystick.id = 'joystick';
-    joystick.innerHTML = `
-        <div class="joystick-base">
-            <div class="joystick-stick"></div>
-        </div>
-    `;
-    document.body.appendChild(joystick);
-    
-    const base = joystick.querySelector('.joystick-base');
-    const stick = joystick.querySelector('.joystick-stick');
-    const baseRect = base.getBoundingClientRect();
-    const centerX = baseRect.width / 2;
-    const centerY = baseRect.height / 2;
-    
-    let isDragging = false;
-    
-    const handleStart = (e) => {
-        if (!gameActive || paused) return;
-        isDragging = true;
-        e.preventDefault();
-    };
-    
-    const handleMove = (e) => {
-        if (!isDragging || !gameActive || paused) return;
-        e.preventDefault();
-        
-        const touch = e.touches ? e.touches[0] : e;
-        const baseRect = base.getBoundingClientRect();
-        
-        let offsetX = touch.clientX - baseRect.left - centerX;
-        let offsetY = touch.clientY - baseRect.top - centerY;
-        
-        const distance = Math.sqrt(offsetX * offsetX + offsetY * offsetY);
-        const maxDistance = centerX - 20;
-        
-        if (distance > maxDistance) {
-            const angle = Math.atan2(offsetY, offsetX);
-            offsetX = Math.cos(angle) * maxDistance;
-            offsetY = Math.sin(angle) * maxDistance;
-        }
-        
-        stick.style.transform = `translate(${offsetX}px, ${offsetY}px)`;
-        
-        // Move player
-        const moveX = (offsetX / maxDistance) * moveSpeed;
-        const moveY = (offsetY / maxDistance) * moveSpeed;
-        
-        playerX = Math.max(0, Math.min(boardWidth - playerSize, playerX + moveX));
-        playerY = Math.max(0, Math.min(boardHeight - playerSize, playerY + moveY));
-        
-        player.style.left = playerX + 'px';
-        player.style.top = playerY + 'px';
-        
-        if (Math.random() > 0.9) createTrail();
-    };
-    
-    const handleEnd = () => {
-        isDragging = false;
-        stick.style.transform = 'translate(0, 0)';
-    };
-    
-    stick.addEventListener('touchstart', handleStart, { passive: false });
-    stick.addEventListener('mousedown', handleStart);
-    document.addEventListener('touchmove', handleMove, { passive: false });
-    document.addEventListener('mousemove', handleMove);
-    document.addEventListener('touchend', handleEnd);
-    document.addEventListener('mouseup', handleEnd);
-}
-
-function hideJoystick() {
-    const joystick = document.getElementById('joystick');
-    if (joystick) joystick.remove();
 }
 
 async function endGame() {
@@ -1024,10 +999,15 @@ async function endGame() {
     clearInterval(spawnInterval);
     clearInterval(powerupInterval);
     clearInterval(timerInterval);
-    
-    hideJoystick();
+    if (magnetInterval) clearInterval(magnetInterval);
     
     const isNew = await saveData();
+    
+    if (score >= 500) achievements.push('💯 500+ Score Club');
+    if (score >= 1000) achievements.push('🎯 1000+ Elite Player');
+    if (score >= 2000) achievements.push('🚀 2000+ Legendary');
+    if (bestCombo >= 15) achievements.push('🔥 Combo Master (15+)');
+    if (collected >= 50) achievements.push('📊 Collector Pro (50+)');
     
     document.getElementById('finalScore').textContent = score;
     document.getElementById('finalLevel').textContent = level;
@@ -1047,8 +1027,19 @@ async function endGame() {
     }
     
     const achievementsContainer = document.getElementById('achievements');
-    achievementsContainer.innerHTML = achievements.length === 0 ? 
-        '<p style="color:#888;">No achievements this time!</p>' : '';
+    achievementsContainer.innerHTML = '<h4 style="color:#ffd700;margin-bottom:10px;">🏆 Achievements</h4>';
+    
+    if (achievements.length === 0) {
+        achievementsContainer.innerHTML += '<p style="color:#888;">No achievements this time!</p>';
+    } else {
+        const uniqueAchievements = [...new Set(achievements)];
+        uniqueAchievements.forEach(ach => {
+            const badge = document.createElement('div');
+            badge.className = 'achievement-badge';
+            badge.textContent = ach;
+            achievementsContainer.appendChild(badge);
+        });
+    }
     
     const historyContainer = document.getElementById('moveHistory');
     historyContainer.innerHTML = '<h4>📜 Last 15 Moves:</h4>';
@@ -1067,40 +1058,201 @@ async function endGame() {
     }
     
     gameOverEl.style.display = 'flex';
-    document.getElementById('startBtn').textContent = 'Play Again';
-    document.getElementById('startBtn').disabled = false;
     document.getElementById('pauseBtn').disabled = true;
+    document.getElementById('exitBtn').disabled = true;
 }
 
 function restartGame() {
     gameOverEl.style.display = 'none';
-    playerX = 327.5;
-    playerY = 227.5;
-    player.style.left = playerX + 'px';
-    player.style.top = playerY + 'px';
-    player.classList.remove('invincible');
+    updateBoardDimensions();
+    playerX = (boardWidth - playerSize) / 2;
+    playerY = (boardHeight - playerSize) / 2;
+    player.style.transform = `translate(${playerX}px, ${playerY}px)`;
+    player.classList.remove('invincible', 'combo-glow');
     board.className = '';
     document.querySelectorAll('.proof, .powerup, .notification').forEach(el => el.remove());
     powerupsEl.innerHTML = '';
-    hideJoystick();
-    introEl.style.display = 'block';
-    document.getElementById('startBtn').disabled = false;
+    
+    introEl.style.display = 'flex';
+}
+
+function exitGame() {
+    if (confirm('Are you sure you want to exit? Your progress will be lost.')) {
+        endGame();
+    }
+}
+
+// ===== SHARE SCORE FUNCTIONS =====
+function openShareModal() {
+    const modal = document.getElementById('shareModal');
+    const preview = document.getElementById('sharePreview');
+    
+    const shareText = `🎮 The Proof Collector
+
+💎 Score: ${score} points
+🏆 Rank: ${getRank(score)}
+🎯 Level: ${level}
+🔥 Best Combo: ${bestCombo}x
+📊 Moves: ${moves}
+
+Can you beat my score? 🚀`;
+
+    preview.textContent = shareText;
+    modal.style.display = 'flex';
+}
+
+function closeShareModal() {
+    document.getElementById('shareModal').style.display = 'none';
+}
+
+function shareOnTwitter() {
+    const text = `🎮 I scored ${score} points in The Proof Collector!\n🏆 ${getRank(score)}\n🔥 Best Combo: ${bestCombo}x\n\nCan you beat my score? 🚀`;
+    const url = window.location.href.replace('game.html', 'index.html');
+    const twitterUrl = `https://twitter.com/intent/tweet?text=${encodeURIComponent(text)}&url=${encodeURIComponent(url)}`;
+    window.open(twitterUrl, '_blank', 'width=550,height=420');
+}
+
+function copyScoreText() {
+    const shareText = `🎮 The Proof Collector
+
+💎 Score: ${score} points
+🏆 Rank: ${getRank(score)}
+🎯 Level: ${level}
+🔥 Best Combo: ${bestCombo}x
+📊 Moves: ${moves}
+
+Can you beat my score? 🚀
+${window.location.href.replace('game.html', 'index.html')}`;
+
+    if (navigator.clipboard) {
+        navigator.clipboard.writeText(shareText).then(() => {
+            alert('Score copied to clipboard! 📋');
+        }).catch(() => {
+            fallbackCopy(shareText);
+        });
+    } else {
+        fallbackCopy(shareText);
+    }
+}
+
+function fallbackCopy(text) {
+    const textarea = document.createElement('textarea');
+    textarea.value = text;
+    textarea.style.position = 'fixed';
+    textarea.style.opacity = '0';
+    document.body.appendChild(textarea);
+    textarea.select();
+    try {
+        document.execCommand('copy');
+        alert('Score copied to clipboard! 📋');
+    } catch (e) {
+        alert('Could not copy. Please copy manually.');
+    }
+    document.body.removeChild(textarea);
+}
+
+function downloadScoreCard() {
+    const canvas = document.createElement('canvas');
+    const ctx = canvas.getContext('2d');
+    canvas.width = 600;
+    canvas.height = 400;
+    
+    const gradient = ctx.createLinearGradient(0, 0, 600, 400);
+    gradient.addColorStop(0, '#667eea');
+    gradient.addColorStop(1, '#764ba2');
+    ctx.fillStyle = gradient;
+    ctx.fillRect(0, 0, 600, 400);
+    
+    ctx.fillStyle = '#fff';
+    ctx.font = 'bold 36px Poppins, sans-serif';
+    ctx.textAlign = 'center';
+    ctx.fillText('🎮 The Proof Collector', 300, 60);
+    
+    ctx.font = 'bold 48px Poppins, sans-serif';
+    ctx.fillStyle = '#ffd700';
+    ctx.fillText(`${score} points`, 300, 140);
+    
+    ctx.font = '28px Poppins, sans-serif';
+    ctx.fillStyle = '#fff';
+    ctx.fillText(getRank(score), 300, 190);
+    
+    ctx.font = '20px Poppins, sans-serif';
+    ctx.fillStyle = '#e0e7ff';
+    ctx.fillText(`Level ${level} • ${bestCombo}x Combo • ${moves} Moves`, 300, 240);
+    
+    ctx.font = 'bold 24px Poppins, sans-serif';
+    ctx.fillStyle = '#fff';
+    ctx.fillText('Can you beat this? 🚀', 300, 300);
+    
+    ctx.font = '16px Poppins, sans-serif';
+    ctx.fillStyle = '#a0aec0';
+    ctx.fillText('The Proof Collector by Casp3r', 300, 360);
+    
+    canvas.toBlob((blob) => {
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `proof-collector-score-${score}.png`;
+        a.click();
+        URL.revokeObjectURL(url);
+    });
 }
 
 // ===== INITIALIZE =====
-setTimeout(() => {
-    document.getElementById('startBtn').disabled = false;
-    document.getElementById('startBtn').textContent = 'Select Mode';
-}, 500);
-
 loadData();
 
-// Make functions globally accessible for onclick handlers
+// Update board dimensions on resize
+window.addEventListener('resize', () => {
+    if (!gameActive) {
+        updateBoardDimensions();
+    }
+});
+
+// Setup mode selection buttons
+document.getElementById('quickBtn').addEventListener('click', () => {
+    console.log('Quick button clicked!');
+    startGame('quick');
+});
+
+document.getElementById('challengeBtn').addEventListener('click', () => {
+    console.log('Challenge button clicked!');
+    startGame('challenge');
+});
+
+document.getElementById('endlessBtn').addEventListener('click', () => {
+    console.log('Endless button clicked!');
+    startGame('endless');
+});
+
+// Setup share button
+document.getElementById('shareBtn').addEventListener('click', openShareModal);
+
+// Close share modal on background click
+document.getElementById('shareModal').addEventListener('click', (e) => {
+    if (e.target.id === 'shareModal') {
+        closeShareModal();
+    }
+});
+
+// Make functions globally accessible
 window.startGame = startGame;
 window.restartGame = restartGame;
 window.togglePause = togglePause;
 window.toggleMute = toggleMute;
-window.selectTouchControl = selectTouchControl;
-window.closeTouchControlSelection = closeTouchControlSelection;
+window.exitGame = exitGame;
+window.openShareModal = openShareModal;
+window.closeShareModal = closeShareModal;
+window.shareOnTwitter = shareOnTwitter;
+window.copyScoreText = copyScoreText;
+window.downloadScoreCard = downloadScoreCard;
 
-console.log('🎮 The Proof Collector - Game Loaded Successfully!');
+console.log('🎮 The Proof Collector - Enhanced Version Loaded!');
+console.log('✨ Features: Magnet auto-collect, mobile optimized, smooth animations');
+
+// ===== AUTO-REDIRECT TO INDEX ON REFRESH =====
+if (!sessionStorage.getItem('gameStarted')) {
+    console.log('🔄 Redirecting to intro page...');
+    window.location.href = 'index.html';
+} else {
+    console.log('✅ Game access authorized');
+}

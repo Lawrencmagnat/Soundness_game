@@ -61,6 +61,34 @@ body {
     transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
+@media (max-width: 1500px) {
+    .hamburger {
+        display: block;
+    }
+    
+    .close-sidebar {
+        display: block;
+    }
+    
+    .score-sidebar {
+        transform: translateX(100%);
+    }
+    
+    .score-sidebar.active {
+        transform: translateX(0);
+    }
+    
+    .game-wrapper {
+        padding-right: 20px;
+    }
+}
+
+@media (max-width: 1100px) {
+    .game-container {
+        max-width: 100%;
+    }
+}
+
 .score-sidebar h3 {
     color: #fff;
     font-size: 1.5em;
@@ -244,6 +272,11 @@ h1 {
     animation: highlight 0.5s ease;
 }
 
+.stat.glow {
+    box-shadow: 0 0 20px rgba(255, 215, 0, 0.8);
+    animation: glow 1s ease infinite;
+}
+
 @keyframes pulse {
     0%, 100% { transform: scale(1); }
     50% { transform: scale(1.1); }
@@ -254,13 +287,18 @@ h1 {
     50% { transform: scale(1.15); box-shadow: 0 6px 20px rgba(255, 215, 0, 0.5); }
 }
 
-/* ===== ACTIVE POWERUPS ===== */
+@keyframes glow {
+    0%, 100% { box-shadow: 0 0 15px rgba(255, 215, 0, 0.6); }
+    50% { box-shadow: 0 0 30px rgba(255, 215, 0, 1); }
+}
+
+/* ===== ACTIVE POWERUPS WITH PROGRESS BARS ===== */
 .active-powerups {
     display: flex;
     flex-wrap: wrap;
     gap: 8px;
     margin-bottom: 15px;
-    min-height: 40px;
+    min-height: 50px;
     justify-content: center;
 }
 
@@ -274,18 +312,25 @@ h1 {
     font-size: 0.85em;
     font-weight: 600;
     box-shadow: 0 3px 10px rgba(255, 215, 0, 0.3);
-    animation: powerupPulse 1s ease infinite;
+    position: relative;
+    overflow: hidden;
 }
 
-@keyframes powerupPulse {
-    0%, 100% { transform: scale(1); }
-    50% { transform: scale(1.05); }
+.powerup-progress {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    height: 3px;
+    background: linear-gradient(90deg, #ffd700, #ffed4e);
+    transition: width 0.1s linear;
+    box-shadow: 0 0 10px rgba(255, 215, 0, 0.8);
 }
 
 /* ===== GAME BOARD ===== */
 #gameBoard {
     position: relative;
-    width: 700px;
+    width: 100%;
+    max-width: 700px;
     height: 500px;
     background: linear-gradient(135deg, #1a202c 0%, #2d3748 100%);
     border-radius: 15px;
@@ -294,6 +339,40 @@ h1 {
     box-shadow: inset 0 0 30px rgba(0, 0, 0, 0.5), 0 10px 40px rgba(0, 0, 0, 0.3);
     border: 2px solid rgba(102, 126, 234, 0.3);
     transition: all 0.5s ease;
+}
+
+@media (max-width: 1400px) {
+    #gameBoard {
+        max-width: 600px;
+        height: 450px;
+    }
+}
+
+@media (max-width: 1200px) {
+    #gameBoard {
+        max-width: 550px;
+        height: 420px;
+    }
+}
+
+@media (max-width: 900px) {
+    #gameBoard {
+        max-width: 500px;
+        height: 400px;
+    }
+}
+
+@media (max-width: 768px) {
+    #gameBoard {
+        max-width: 100%;
+        height: 400px;
+    }
+}
+
+@media (max-width: 480px) {
+    #gameBoard {
+        height: 350px;
+    }
 }
 
 #gameBoard.shake {
@@ -306,7 +385,6 @@ h1 {
     75% { transform: translateX(10px); }
 }
 
-/* Level backgrounds with subtle patterns */
 #gameBoard.level-1 { 
     background: linear-gradient(135deg, #1a202c 0%, #2d3748 100%);
     border-color: rgba(102, 126, 234, 0.5);
@@ -328,7 +406,7 @@ h1 {
     border-color: rgba(251, 191, 36, 0.5);
 }
 
-/* ===== PLAYER ===== */
+/* ===== PLAYER WITH TRANSFORMS ===== */
 .player {
     position: absolute;
     width: 45px;
@@ -338,7 +416,7 @@ h1 {
     align-items: center;
     justify-content: center;
     z-index: 10;
-    transition: transform 0.1s ease;
+    will-change: transform;
     filter: drop-shadow(0 4px 12px rgba(102, 126, 234, 0.6));
 }
 
@@ -346,9 +424,19 @@ h1 {
     animation: invincible 0.3s ease infinite;
 }
 
+.player.combo-glow {
+    filter: drop-shadow(0 0 20px #ffd700) drop-shadow(0 0 40px #ffd700);
+    animation: comboGlow 0.5s ease infinite;
+}
+
 @keyframes invincible {
     0%, 100% { filter: drop-shadow(0 0 20px #ffd700); }
     50% { filter: drop-shadow(0 0 40px #ffd700); }
+}
+
+@keyframes comboGlow {
+    0%, 100% { transform: scale(1); }
+    50% { transform: scale(1.1); }
 }
 
 /* ===== TRAIL EFFECT ===== */
@@ -454,6 +542,13 @@ h1 {
     font-size: 28px;
     box-shadow: 0 4px 15px rgba(159, 122, 234, 0.5);
 }
+.powerup.magnet {
+    background: linear-gradient(135deg, #ed64a6 0%, #d53f8c 100%);
+    width: 45px;
+    height: 45px;
+    font-size: 28px;
+    box-shadow: 0 4px 15px rgba(237, 100, 166, 0.5);
+}
 
 .powerup:hover {
     transform: scale(1.15) rotate(10deg);
@@ -509,14 +604,16 @@ h1 {
     backdrop-filter: blur(10px);
     border: 2px solid rgba(102, 126, 234, 0.5);
     color: white;
-    padding: 20px 40px;
+    padding: 15px 30px;
     border-radius: 15px;
-    font-size: 24px;
+    font-size: 20px;
     font-weight: bold;
     z-index: 30;
     box-shadow: 0 10px 40px rgba(0, 0, 0, 0.5);
     animation: notificationShow 2.5s ease;
     pointer-events: none;
+    max-width: 80%;
+    text-align: center;
 }
 
 @keyframes notificationShow {
@@ -527,7 +624,7 @@ h1 {
     100% { opacity: 0; }
 }
 
-/* ===== INTRO SCREEN ===== */
+/* ===== INTRO/MODE SELECTION SCREEN ===== */
 .intro-screen {
     position: absolute;
     top: 0;
@@ -543,30 +640,14 @@ h1 {
     padding: 40px 20px;
     z-index: 50;
     border-radius: 15px;
-    overflow-y: auto;
 }
 
 .intro-screen h2 {
     color: #fff;
-    margin-bottom: 15px;
+    margin-bottom: 30px;
     font-size: 2em;
     text-shadow: 0 0 20px rgba(102, 126, 234, 0.5);
     text-align: center;
-}
-
-.intro-screen p {
-    color: #a0aec0;
-    text-align: center;
-    line-height: 1.6;
-    max-width: 500px;
-    font-size: 0.95em;
-    margin-bottom: 10px;
-}
-
-.intro-screen p strong {
-    color: #fff;
-    display: block;
-    margin-top: 8px;
 }
 
 .mode-select {
@@ -586,7 +667,7 @@ h1 {
     font-size: 1.1em;
     font-weight: 600;
     cursor: pointer;
-    transition: all 0.3s ease;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
     box-shadow: 0 6px 20px rgba(102, 126, 234, 0.4);
     font-family: 'Poppins', sans-serif;
 }
@@ -643,7 +724,7 @@ h1 {
     box-shadow: 0 4px 15px rgba(255, 215, 0, 0.4);
     animation: celebration 0.6s ease;
     width: 100%;
-    max-width: 400px;
+    max-width: 500px;
 }
 
 @keyframes celebration {
@@ -662,7 +743,7 @@ h1 {
 }
 
 .rank-display {
-    font-size: 1.5em;
+    font-size: 1.8em;
     font-weight: bold;
     color: #ffd700;
     margin-bottom: 15px;
@@ -682,14 +763,26 @@ h1 {
     width: 100%;
 }
 
+.achievement-badge {
+    display: inline-block;
+    background: rgba(255, 215, 0, 0.15);
+    border: 2px solid rgba(255, 215, 0, 0.4);
+    color: #ffd700;
+    padding: 8px 16px;
+    border-radius: 20px;
+    margin: 5px;
+    font-size: 0.9em;
+    font-weight: 600;
+}
+
 .move-history {
     background: rgba(0, 0, 0, 0.3);
     backdrop-filter: blur(10px);
     padding: 15px;
     border-radius: 12px;
-    margin: 20px 0;
+    margin: 20px auto;
     width: 100%;
-    max-width: 500px;
+    max-width: 600px;
     max-height: 200px;
     overflow-y: auto;
     border: 1px solid rgba(102, 126, 234, 0.3);
@@ -721,7 +814,15 @@ h1 {
     border-left: 3px solid #f56565;
 }
 
-.game-over button {
+.game-over-buttons {
+    display: flex;
+    gap: 15px;
+    margin-top: 20px;
+    flex-wrap: wrap;
+    justify-content: center;
+}
+
+.primary-btn, .share-btn {
     background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
     color: white;
     border: none;
@@ -732,13 +833,150 @@ h1 {
     cursor: pointer;
     transition: all 0.3s ease;
     box-shadow: 0 6px 20px rgba(102, 126, 234, 0.4);
-    margin-top: 15px;
     font-family: 'Poppins', sans-serif;
 }
 
-.game-over button:hover {
+.share-btn {
+    background: linear-gradient(135deg, #48bb78 0%, #38a169 100%);
+    box-shadow: 0 6px 20px rgba(72, 187, 120, 0.4);
+}
+
+.primary-btn:hover, .share-btn:hover {
     transform: translateY(-2px);
     box-shadow: 0 8px 25px rgba(102, 126, 234, 0.6);
+}
+
+.share-btn:hover {
+    box-shadow: 0 8px 25px rgba(72, 187, 120, 0.6);
+}
+
+/* ===== SHARE MODAL ===== */
+.share-modal {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.8);
+    backdrop-filter: blur(5px);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 2000;
+    animation: fadeIn 0.3s ease;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
+
+.share-modal-content {
+    background: rgba(26, 32, 44, 0.98);
+    backdrop-filter: blur(15px);
+    border-radius: 20px;
+    padding: 30px;
+    max-width: 500px;
+    width: 90%;
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+    border: 2px solid rgba(102, 126, 234, 0.3);
+    position: relative;
+    animation: slideUp 0.3s ease;
+}
+
+@keyframes slideUp {
+    from { transform: translateY(50px); opacity: 0; }
+    to { transform: translateY(0); opacity: 1; }
+}
+
+.share-modal-content h3 {
+    color: #fff;
+    margin-bottom: 20px;
+    text-align: center;
+    font-size: 1.8em;
+}
+
+.close-modal {
+    position: absolute;
+    top: 15px;
+    right: 15px;
+    background: rgba(255, 255, 255, 0.1);
+    border: none;
+    color: #fff;
+    width: 35px;
+    height: 35px;
+    border-radius: 50%;
+    font-size: 20px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.close-modal:hover {
+    background: rgba(255, 255, 255, 0.2);
+    transform: rotate(90deg);
+}
+
+.share-preview {
+    background: rgba(102, 126, 234, 0.1);
+    border: 2px solid rgba(102, 126, 234, 0.3);
+    border-radius: 12px;
+    padding: 20px;
+    margin-bottom: 20px;
+    color: #e0e7ff;
+    line-height: 1.8;
+    font-size: 0.95em;
+    white-space: pre-line;
+}
+
+.share-buttons {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.social-btn {
+    background: rgba(102, 126, 234, 0.2);
+    border: 2px solid rgba(102, 126, 234, 0.4);
+    color: #fff;
+    padding: 12px 20px;
+    border-radius: 10px;
+    font-size: 1em;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    font-family: 'Poppins', sans-serif;
+}
+
+.social-btn:hover {
+    background: rgba(102, 126, 234, 0.3);
+    transform: translateX(5px);
+}
+
+.twitter-btn {
+    background: rgba(29, 161, 242, 0.2);
+    border-color: rgba(29, 161, 242, 0.4);
+}
+
+.twitter-btn:hover {
+    background: rgba(29, 161, 242, 0.3);
+}
+
+.copy-btn {
+    background: rgba(72, 187, 120, 0.2);
+    border-color: rgba(72, 187, 120, 0.4);
+}
+
+.copy-btn:hover {
+    background: rgba(72, 187, 120, 0.3);
+}
+
+.download-btn {
+    background: rgba(159, 122, 234, 0.2);
+    border-color: rgba(159, 122, 234, 0.4);
+}
+
+.download-btn:hover {
+    background: rgba(159, 122, 234, 0.3);
 }
 
 /* ===== CONTROLS ===== */
@@ -815,204 +1053,63 @@ h1 {
     }
     
     .game-container {
-        padding: 20px 15px;
+        padding: 15px 10px;
         border-radius: 15px;
-    }
-    
-    h1 {
-        font-size: 1.6em;
-    }
-    
-    .subtitle {
-        font-size: 0.95em;
-    }
-    
-    .high-score {
-        font-size: 1em;
-    }
-    
-    #gameBoard {
-        width: 100%;
-        max-width: 500px;
-        height: 400px;
-    }
-    
-    .stats {
-        gap: 8px;
-    }
-    
-    .stat {
-        padding: 8px 12px;
-        font-size: 0.9em;
-        min-width: 70px;
-    }
-    
-    .intro-screen {
-        padding: 15px 10px;
-        justify-content: flex-start;
-        overflow-y: auto;
-    }
-    
-    .intro-screen h2 {
-        font-size: 1.3em;
-        margin-bottom: 10px;
-        margin-top: 10px;
-    }
-    
-    .intro-screen p {
-        font-size: 0.8em;
-        line-height: 1.5;
-        margin-bottom: 8px;
-    }
-    
-    .intro-screen p strong {
-        margin-top: 5px;
-        font-size: 0.95em;
-    }
-    
-    .mode-select {
-        flex-direction: column;
-        width: 100%;
-        gap: 10px;
-        margin: 15px 0;
-    }
-    
-    .mode-btn {
-        width: 100%;
-        padding: 15px 20px;
-        font-size: 1em;
-    }
-    
-    .mode-btn small {
-        font-size: 0.8em;
-    }
-    
-    .game-over {
-        padding: 20px 15px;
-        justify-content: center;
-    }
-    
-    .game-over h2 {
-        font-size: 1.5em;
-        margin-bottom: 12px;
-    }
-    
-    .game-over p {
-        font-size: 0.95em;
-        margin-bottom: 8px;
-    }
-    
-    .new-high-score-msg {
-        padding: 12px 20px;
-        margin-bottom: 12px;
-    }
-    
-    .rank-display {
-        font-size: 1.3em;
-        margin-bottom: 12px;
-    }
-    
-    .move-history {
-        padding: 12px;
-        margin: 15px 0;
-        max-height: 150px;
-    }
-    
-    .move-history h4 {
-        font-size: 0.95em;
-        margin-bottom: 8px;
-    }
-    
-    .move-item {
-        padding: 6px;
-        margin: 4px 0;
-        font-size: 0.85em;
-    }
-    
-    .game-over button {
-        padding: 12px 30px;
-        font-size: 1em;
-        margin-top: 10px;
-    }
-    
-    .controls {
-        gap: 10px;
-    }
-    
-    .controls button {
-        padding: 10px 20px;
-        font-size: 0.9em;
-    }
-    
-    .mobile-credit {
-        display: block;
-    }
-}
-
-@media (max-width: 480px) {
-    body {
-        padding: 10px;
-    }
-    
-    .game-container {
-        padding: 15px 10px;
+        max-width: 100%;
     }
     
     h1 {
         font-size: 1.4em;
     }
     
+    .subtitle {
+        font-size: 0.85em;
+    }
+    
+    .high-score {
+        font-size: 0.9em;
+    }
+    
     #gameBoard {
-        height: 350px;
+        width: 100%;
+        max-width: 100%;
+        height: 400px;
+    }
+    
+    .stats {
+        gap: 6px;
     }
     
     .stat {
         padding: 6px 10px;
-        font-size: 0.85em;
-        min-width: 60px;
-    }
-    
-    .intro-screen {
-        padding: 10px 8px;
+        font-size: 0.8em;
+        min-width: 55px;
     }
     
     .intro-screen h2 {
-        font-size: 1.1em;
-        margin-bottom: 8px;
+        font-size: 1.3em;
+        margin-bottom: 20px;
     }
-    
-    .intro-screen p {
-        font-size: 0.75em;
-        line-height: 1.4;
-        margin-bottom: 6px;
-    }
-    
-    .intro-screen p br {
-        display: none;
-    }
-    
+
     .mode-select {
-        gap: 8px;
-        margin: 10px 0;
+        flex-direction: column;
+        width: 100%;
+        gap: 12px;
     }
-    
+
     .mode-btn {
-        padding: 12px 15px;
-        font-size: 0.9em;
-    }
-    
-    .mode-btn small {
-        font-size: 0.75em;
-        margin-top: 3px;
+        width: 100%;
+        padding: 15px 20px;
+        font-size: 1em;
     }
     
     .game-over {
         padding: 15px 10px;
-        justify-content: center;
+        justify-content: flex-start;
     }
     
     .game-over h2 {
-        font-size: 1.2em;
+        font-size: 1.3em;
         margin-bottom: 10px;
     }
     
@@ -1026,16 +1123,8 @@ h1 {
         margin-bottom: 10px;
     }
     
-    .new-high-score-msg h3 {
-        font-size: 1em;
-    }
-    
-    .new-high-score-msg p {
-        font-size: 0.8em;
-    }
-    
     .rank-display {
-        font-size: 1.1em;
+        font-size: 1.2em;
         margin-bottom: 10px;
     }
     
@@ -1046,20 +1135,245 @@ h1 {
     }
     
     .move-history h4 {
-        font-size: 0.9em;
+        font-size: 0.85em;
         margin-bottom: 6px;
     }
     
     .move-item {
         padding: 5px;
         margin: 3px 0;
+        font-size: 0.75em;
+    }
+    
+    .primary-btn, .share-btn {
+        padding: 10px 20px;
+        font-size: 0.9em;
+    }
+    
+    .game-over-buttons {
+        flex-direction: column;
+        width: 100%;
+        gap: 10px;
+    }
+    
+    .game-over-buttons button {
+        width: 100%;
+    }
+    
+    .controls {
+        gap: 8px;
+    }
+    
+    .controls button {
+        padding: 8px 15px;
         font-size: 0.8em;
     }
     
-    .game-over button {
-        padding: 10px 25px;
+    .mobile-credit {
+        display: block;
+    }
+    
+    .share-modal-content {
+        padding: 20px;
+        width: 95%;
+    }
+    
+    .share-modal-content h3 {
+        font-size: 1.3em;
+    }
+    
+    .active-powerups {
+        min-height: 40px;
+        gap: 6px;
+    }
+    
+    .powerup-indicator {
+        font-size: 0.75em;
+        padding: 6px 10px;
+    }
+}
+
+@media (max-width: 480px) {
+    body {
+        padding: 5px;
+    }
+    
+    .game-container {
+        padding: 10px 8px;
+        border-radius: 12px;
+    }
+    
+    h1 {
+        font-size: 1.2em;
+        margin-bottom: 5px;
+    }
+    
+    .subtitle {
+        font-size: 0.75em;
+        margin-bottom: 8px;
+    }
+    
+    .high-score {
+        font-size: 0.8em;
+        margin-bottom: 10px;
+    }
+    
+    #gameBoard {
+        height: 350px;
+        border-radius: 12px;
+    }
+    
+    .stats {
+        gap: 5px;
+        margin-bottom: 10px;
+    }
+    
+    .stat {
+        padding: 5px 8px;
+        font-size: 0.7em;
+        min-width: 50px;
+        border-radius: 8px;
+    }
+    
+    .intro-screen {
+        padding: 15px 10px;
+    }
+
+    .intro-screen h2 {
+        font-size: 1.1em;
+        margin-bottom: 15px;
+    }
+
+    .mode-btn {
+        padding: 12px 15px;
         font-size: 0.9em;
-        margin-top: 8px;
+    }
+    
+    .game-over {
+        padding: 10px 8px;
+    }
+    
+    .game-over h2 {
+        font-size: 1.1em;
+        margin-bottom: 8px;
+    }
+    
+    .game-over p {
+        font-size: 0.75em;
+        margin-bottom: 5px;
+    }
+    
+    .new-high-score-msg {
+        padding: 8px 12px;
+        margin-bottom: 8px;
+    }
+    
+    .new-high-score-msg h3 {
+        font-size: 0.9em;
+    }
+    
+    .new-high-score-msg p {
+        font-size: 0.75em;
+    }
+    
+    .rank-display {
+        font-size: 1em;
+        margin-bottom: 8px;
+    }
+    
+    .achievement-badge {
+        font-size: 0.75em;
+        padding: 5px 10px;
+        margin: 3px;
+    }
+    
+    .move-history {
+        padding: 8px;
+        margin: 10px 0;
+        max-height: 100px;
+    }
+    
+    .move-history h4 {
+        font-size: 0.8em;
+        margin-bottom: 5px;
+    }
+    
+    .move-item {
+        padding: 4px;
+        margin: 2px 0;
+        font-size: 0.7em;
+    }
+    
+    .primary-btn, .share-btn {
+        padding: 10px 20px;
+        font-size: 0.85em;
+    }
+    
+    .controls {
+        gap: 6px;
+        margin-top: 10px;
+    }
+    
+    .controls button {
+        padding: 8px 12px;
+        font-size: 0.75em;
+        border-radius: 8px;
+    }
+    
+    .player {
+        width: 35px;
+        height: 35px;
+        font-size: 28px;
+    }
+    
+    .proof {
+        width: 28px;
+        height: 28px;
+        font-size: 18px;
+    }
+    
+    .powerup {
+        width: 35px;
+        height: 35px;
+        font-size: 20px;
+    }
+    
+    .powerup.combo-boost,
+    .powerup.magnet {
+        width: 38px;
+        height: 38px;
+        font-size: 24px;
+    }
+    
+    .active-powerups {
+        min-height: 35px;
+        gap: 5px;
+        margin-bottom: 10px;
+    }
+    
+    .powerup-indicator {
+        font-size: 0.7em;
+        padding: 5px 8px;
+    }
+}
+
+@media (max-width: 360px) {
+    .game-container {
+        padding: 8px 5px;
+    }
+    
+    h1 {
+        font-size: 1em;
+    }
+    
+    #gameBoard {
+        height: 300px;
+    }
+    
+    .stat {
+        padding: 4px 6px;
+        font-size: 0.65em;
+        min-width: 45px;
     }
 }
 
@@ -1079,4 +1393,93 @@ h1 {
 .move-history::-webkit-scrollbar-thumb {
     background: rgba(102, 126, 234, 0.5);
     border-radius: 10px;
+}
+
+.score-sidebar::-webkit-scrollbar-thumb:hover,
+.move-history::-webkit-scrollbar-thumb:hover {
+    background: rgba(102, 126, 234, 0.7);
+}
+
+/* ===== FIX FOR ELEMENTS GOING OUTSIDE CONTAINER ===== */
+/* Ensure game board is always contained */
+#gameBoard {
+    position: relative;
+    overflow: hidden !important;
+}
+
+/* Force all children to stay within bounds */
+#gameBoard > * {
+    max-width: 100%;
+    max-height: 100%;
+}
+
+.proof, .powerup, .player, .trail, .particle, .feedback, .notification {
+    position: absolute !important;
+}
+
+/* Prevent any overflow */
+.proof {
+    max-width: 32px;
+    max-height: 32px;
+}
+
+.powerup {
+    max-width: 45px;
+    max-height: 45px;
+}
+
+.player {
+    max-width: 45px;
+    max-height: 45px;
+}
+
+/* Mobile specific constraints */
+@media (max-width: 768px) {
+    #gameBoard {
+        position: relative;
+        overflow: hidden !important;
+        contain: layout style paint;
+    }
+    
+    .proof {
+        max-width: 28px;
+        max-height: 28px;
+    }
+    
+    .powerup {
+        max-width: 38px;
+        max-height: 38px;
+    }
+    
+    .player {
+        max-width: 35px;
+        max-height: 35px;
+    }
+}
+
+@media (max-width: 480px) {
+    .proof {
+        width: 24px !important;
+        height: 24px !important;
+        font-size: 16px !important;
+    }
+    
+    .powerup {
+        width: 32px !important;
+        height: 32px !important;
+        font-size: 18px !important;
+    }
+    
+    .powerup.combo-boost,
+    .powerup.magnet {
+        width: 35px !important;
+        height: 35px !important;
+        font-size: 22px !important;
+    }
+    
+    .player {
+        width: 32px !important;
+        height: 32px !important;
+        font-size: 26px !important;
+    }
 }

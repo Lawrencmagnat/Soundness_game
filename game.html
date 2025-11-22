@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <meta name="theme-color" content="#667eea">
+    <meta name="description" content="The Proof Collector - A blockchain-themed arcade game where you verify cryptographic proofs!">
+    <title>The Proof Collector</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+    <!-- Hamburger Menu Button (Mobile Only) -->
+    <button class="hamburger" id="hamburger" aria-label="Toggle menu">☰</button>
+
+    <!-- Score History Sidebar -->
+    <div class="score-sidebar" id="scoreSidebar">
+        <button class="close-sidebar" id="closeSidebar" aria-label="Close menu">✕</button>
+        <h3>📊 Score History</h3>
+        <div id="sidebarHistory"></div>
+        <div class="sidebar-footer">
+            <p><strong>Developed by Casp3r</strong></p>
+            <a href="https://x.com/ChukwuLawrencem" target="_blank" rel="noopener noreferrer" class="twitter-link">
+                🐦 @ChukwuLawrencem
+            </a>
+        </div>
+    </div>
+
+    <!-- Main Game Area -->
+    <div class="game-wrapper">
+        <div class="game-container">
+            <h1>🎮 The Proof Collector</h1>
+            <p class="subtitle">Verify blockchain proofs with Soundy!</p>
+            <p class="high-score">🏆 High Score: <span id="highScore">0</span></p>
+            
+            <div class="stats">
+                <div class="stat score">💎 <span id="score">0</span></div>
+                <div class="stat timer">⏱️ <span id="timer">3:00</span></div>
+                <div class="stat lives">❤️ <span id="lives">5</span></div>
+                <div class="stat moves">📊 <span id="moves">0</span></div>
+                <div class="stat level-stat">🎯 L<span id="level">1</span></div>
+                <div class="stat combo">🔥 <span id="combo">0</span>x</div>
+            </div>
+
+            <!-- Active Powerups with Progress Bars -->
+            <div class="active-powerups" id="activePowerups"></div>
+
+            <div id="gameBoard">
+                <div class="player" id="player">🎯</div>
+                
+                <!-- Mode Selection Screen -->
+                <div class="intro-screen" id="introScreen">
+                    <h2>🚀 Select Game Mode</h2>
+                    <div class="mode-select">
+                        <button class="mode-btn" id="quickBtn">
+                            ⚡ Quick<br><small>3 min</small>
+                        </button>
+                        <button class="mode-btn" id="challengeBtn">
+                            🔥 Challenge<br><small>5 min</small>
+                        </button>
+                        <button class="mode-btn" id="endlessBtn">
+                            ♾️ Endless<br><small>Survive!</small>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Game Over Screen -->
+                <div class="game-over" id="gameOver">
+                    <h2>🎉 Mission Complete!</h2>
+                    <div id="newHighScoreMsg" class="new-high-score-msg" style="display:none;">
+                        <h3>🎊 NEW HIGH SCORE! 🎊</h3>
+                        <p>You beat your previous record!</p>
+                    </div>
+                    <p class="rank-display" id="rankDisplay"></p>
+                    <p><strong>Score:</strong> <span id="finalScore">0</span> | <strong>Level:</strong> <span id="finalLevel">1</span></p>
+                    <p><strong>Moves:</strong> <span id="finalMoves">0</span> (<span id="finalValid">0</span> ✓ / <span id="finalFake">0</span> ✗)</p>
+                    <p><strong>Best Combo:</strong> <span id="bestCombo">0</span> 🔥</p>
+                    
+                    <!-- Achievements -->
+                    <div class="achievements" id="achievements"></div>
+                    
+                    <!-- Move History -->
+                    <div class="move-history" id="moveHistory"></div>
+                    
+                    <!-- Action Buttons -->
+                    <div class="game-over-buttons">
+                        <button class="primary-btn" onclick="restartGame()">🔄 Play Again</button>
+                        <button class="share-btn" id="shareBtn">📤 Share Score</button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="controls">
+                <button id="pauseBtn" onclick="togglePause()" disabled>⏸️ Pause</button>
+                <button id="exitBtn" onclick="exitGame()" disabled>🚪 Exit</button>
+                <button id="muteBtn" onclick="toggleMute()">🔊 ON</button>
+            </div>
+
+            <!-- Mobile Credit -->
+            <div class="mobile-credit">
+                <p><strong>Developed by Casp3r</strong></p>
+                <a href="https://x.com/ChukwuLawrencem" target="_blank" rel="noopener noreferrer" class="twitter-link">
+                    🐦 @ChukwuLawrencem
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Share Modal -->
+    <div class="share-modal" id="shareModal" style="display:none;">
+        <div class="share-modal-content">
+            <button class="close-modal" onclick="closeShareModal()">✕</button>
+            <h3>📤 Share Your Score</h3>
+            <div class="share-preview" id="sharePreview"></div>
+            <div class="share-buttons">
+                <button class="social-btn twitter-btn" onclick="shareOnTwitter()">
+                    🐦 Share on Twitter
+                </button>
+                <button class="social-btn copy-btn" onclick="copyScoreText()">
+                    📋 Copy Score
+                </button>
+                <button class="social-btn download-btn" onclick="downloadScoreCard()">
+                    💾 Download Card
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script src="/js/game.js"></script>
+</body>
+</html>

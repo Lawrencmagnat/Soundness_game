@@ -1,5 +1,6 @@
-# ===== OPERATING SYSTEM FILES =====
+# ===== The Proof Collector - .gitignore =====
 
+# ===== Operating System Files =====
 # macOS
 .DS_Store
 .AppleDouble
@@ -36,15 +37,14 @@ $RECYCLE.BIN/
 
 # Linux
 *~
+.fuse_hidden*
 .directory
 .Trash-*
 .nfs*
 
-
-# ===== EDITOR / IDE FILES =====
-
+# ===== IDE / Editor Files =====
 # Visual Studio Code
-.vscode/
+.vscode/*
 !.vscode/settings.json
 !.vscode/tasks.json
 !.vscode/launch.json
@@ -52,22 +52,20 @@ $RECYCLE.BIN/
 *.code-workspace
 .history/
 
-# JetBrains IDEs (WebStorm, PHPStorm, etc.)
+# JetBrains (WebStorm, PhpStorm, etc.)
 .idea/
 *.iml
 *.ipr
 *.iws
 out/
 .idea_modules/
-atlassian-ide-plugin.xml
-com_crashlytics_export_strings.xml
-crashlytics.properties
-crashlytics-build.properties
-fabric.properties
 
 # Sublime Text
-*.sublime-workspace
 *.sublime-project
+*.sublime-workspace
+
+# Atom
+.atom/
 
 # Vim
 [._]*.s[a-v][a-z]
@@ -92,183 +90,94 @@ auto-save-list
 tramp
 .\#*
 
-
-# ===== NODE.JS / NPM =====
-
-# Dependencies
+# ===== Node Modules (if using build tools) =====
 node_modules/
-jspm_packages/
-bower_components/
-
-# Build outputs
-dist/
-build/
-*.tgz
-
-# npm logs
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
 lerna-debug.log*
 .pnpm-debug.log*
 
-# Package manager lock files (optional - uncomment if you want to ignore them)
-# package-lock.json
-# yarn.lock
-# pnpm-lock.yaml
+# ===== Package Manager Files =====
+package-lock.json
+yarn.lock
+pnpm-lock.yaml
 
-
-# ===== DEVELOPMENT & BUILD FILES =====
-
-# Compiled files
-*.com
-*.class
-*.dll
-*.exe
-*.o
-*.so
-
-# Minified files
+# ===== Build / Distribution Files =====
+dist/
+build/
 *.min.js
 *.min.css
-
-# Source maps
 *.map
 
-# Cache directories
-.cache/
-.parcel-cache/
-.npm/
-.eslintcache
-.stylelintcache
-.rpt2_cache/
-.rts2_cache_cjs/
-.rts2_cache_es/
-.rts2_cache_umd/
-
-# Optional npm cache directory
-.npm
-
-# Optional eslint cache
-.eslintcache
-
-# Microbundle cache
-.rpt2_cache/
-.rts2_cache_cjs/
-.rts2_cache_es/
-.rts2_cache_umd/
-
-
-# ===== TESTING =====
-
-# Coverage directories
-coverage/
-*.lcov
-.nyc_output
-lib-cov
-
-# Test outputs
-test-results/
-*.test.js.snap
-
-
-# ===== LOGS & DATABASES =====
-
-# Log files
-*.log
+# ===== Logs =====
 logs/
-*.log.*
-pids
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+lerna-debug.log*
+pids/
 *.pid
 *.seed
 *.pid.lock
 
-# Database files
-*.sql
-*.sqlite
-*.sqlite3
-*.db
+# ===== Temporary Files =====
+tmp/
+temp/
+*.tmp
+*.temp
+*.swp
+*.swo
+*.bak
+*.cache
 
-
-# ===== ENVIRONMENT & CONFIG =====
-
-# Environment variables
+# ===== Environment Variables =====
 .env
 .env.local
 .env.development.local
 .env.test.local
 .env.production.local
-.env.*.local
+.env*.local
 
-# Local config files
-config.local.js
-config.local.json
-
-
-# ===== TEMPORARY FILES =====
-
-# Temporary directories
-tmp/
-temp/
-.tmp/
-
-# Backup files
-*.bak
-*.backup
-*.swp
-*.swo
-*~
-
-
-# ===== PROJECT SPECIFIC =====
-
-# Game assets backup
-assets/backup/
-
-# Development notes (optional)
-NOTES.md
-TODO.md
-DEVLOG.md
-
-# Local server configs
-.htaccess.local
-server.local.*
-
-# Screenshots / recordings (optional - uncomment if needed)
-# screenshots/
-# recordings/
-# demos/
-
-
-# ===== DEPLOYMENT =====
-
-# Build output folders
-public/
-dist/
-out/
-
-# Deployment files (optional)
+# ===== Vercel =====
 .vercel
-.netlify
-.firebase/
-firebase-debug.log
-firestore-debug.log
-ui-debug.log
+.vercel.json
 
+# ===== Testing =====
+coverage/
+.nyc_output/
+*.lcov
+.jest/
 
-# ===== MISC =====
+# ===== Database Files (if any) =====
+*.db
+*.sqlite
+*.sqlite3
 
-# Archives
+# ===== Backup Files =====
+*.backup
+*.old
+backup/
+
+# ===== Compressed Files =====
 *.zip
-*.tar.gz
+*.tar
+*.gz
 *.rar
 *.7z
 
-# System Files
-*.swp
-*.swo
-.DS_Store
+# ===== Game Specific (Optional) =====
+# Uncomment if you want to ignore high scores locally
+# highscores.json
+# player-data.json
 
-# Optional files to keep
-!.gitkeep
-!.gitattributes
+# ===== Documentation Build =====
+docs/_build/
+site/
+
+# ===== Misc =====
+.sass-cache/
+*.css.map
+*.sass.map
+*.scss.map
