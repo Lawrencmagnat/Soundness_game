@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="theme-color" content="#667eea">
-    <meta name="description" content="The Proof Collector - Verify blockchain proofs in this exciting game!">
+    <meta name="description" content="The Proof Collector - Swim through the blockchain ocean and verify ZK proofs!">
     <title>The Proof Collector - Introduction</title>
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <style>
@@ -17,13 +17,67 @@
 
         body {
             font-family: 'Poppins', sans-serif;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background: linear-gradient(135deg, #1a4d6d 0%, #0a2540 50%, #051525 100%);
             min-height: 100vh;
             display: flex;
             justify-content: center;
             align-items: center;
             padding: 20px;
             overflow-x: hidden;
+            position: relative;
+        }
+
+        /* Animated ocean waves background */
+        body::before {
+            content: '';
+            position: fixed;
+            top: 0;
+            left: -100%;
+            width: 200%;
+            height: 100%;
+            background: repeating-linear-gradient(
+                90deg,
+                transparent 0px,
+                rgba(173, 216, 230, 0.02) 40px,
+                transparent 80px
+            );
+            animation: waves 25s linear infinite;
+            pointer-events: none;
+            z-index: 1;
+        }
+
+        @keyframes waves {
+            0% { transform: translateX(0); }
+            100% { transform: translateX(50%); }
+        }
+
+        /* Floating bubbles */
+        .bubble {
+            position: fixed;
+            bottom: -50px;
+            background: radial-gradient(circle at 30% 30%, rgba(255, 255, 255, 0.6), rgba(173, 216, 230, 0.3));
+            border-radius: 50%;
+            opacity: 0.4;
+            pointer-events: none;
+            z-index: 1;
+            animation: floatUp linear infinite;
+        }
+
+        @keyframes floatUp {
+            0% {
+                transform: translateY(0) translateX(0);
+                opacity: 0;
+            }
+            10% {
+                opacity: 0.4;
+            }
+            90% {
+                opacity: 0.4;
+            }
+            100% {
+                transform: translateY(-110vh) translateX(50px);
+                opacity: 0;
+            }
         }
 
         /* ===== INTRO CONTAINER ===== */
@@ -37,6 +91,8 @@
             box-shadow: 0 25px 70px rgba(0, 0, 0, 0.5);
             border: 2px solid rgba(102, 126, 234, 0.3);
             animation: fadeInUp 0.6s ease;
+            position: relative;
+            z-index: 10;
         }
 
         @keyframes fadeInUp {
@@ -64,11 +120,11 @@
             font-size: 3em;
             font-weight: 800;
             margin-bottom: 15px;
-            background: linear-gradient(135deg, #ffd700, #ffed4e);
+            background: linear-gradient(135deg, #4dd0e1, #00bcd4);
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
             background-clip: text;
-            text-shadow: 0 0 30px rgba(255, 215, 0, 0.3);
+            text-shadow: 0 0 30px rgba(77, 208, 225, 0.3);
         }
 
         .tagline {
@@ -85,7 +141,7 @@
         .intro-section h2 {
             font-size: 1.8em;
             margin-bottom: 20px;
-            color: #ffd700;
+            color: #4dd0e1;
             text-align: center;
         }
 
@@ -120,9 +176,9 @@
         }
 
         .instruction-card {
-            background: rgba(102, 126, 234, 0.15);
+            background: rgba(77, 208, 225, 0.15);
             backdrop-filter: blur(10px);
-            border: 1px solid rgba(102, 126, 234, 0.3);
+            border: 1px solid rgba(77, 208, 225, 0.3);
             border-radius: 15px;
             padding: 25px;
             text-align: center;
@@ -131,8 +187,8 @@
 
         .instruction-card:hover {
             transform: translateY(-5px);
-            background: rgba(102, 126, 234, 0.25);
-            box-shadow: 0 10px 30px rgba(102, 126, 234, 0.3);
+            background: rgba(77, 208, 225, 0.25);
+            box-shadow: 0 10px 30px rgba(77, 208, 225, 0.3);
         }
 
         .instruction-icon {
@@ -143,7 +199,7 @@
         .instruction-card h3 {
             font-size: 1.3em;
             margin-bottom: 12px;
-            color: #ffd700;
+            color: #4dd0e1;
         }
 
         .instruction-card p {
@@ -161,9 +217,9 @@
         }
 
         .powerup-item {
-            background: rgba(102, 126, 234, 0.15);
+            background: rgba(77, 208, 225, 0.15);
             backdrop-filter: blur(10px);
-            border: 1px solid rgba(102, 126, 234, 0.3);
+            border: 1px solid rgba(77, 208, 225, 0.3);
             border-radius: 12px;
             padding: 15px;
             text-align: center;
@@ -173,12 +229,12 @@
         }
 
         .powerup-item:hover {
-            background: rgba(102, 126, 234, 0.25);
+            background: rgba(77, 208, 225, 0.25);
             transform: scale(1.05);
         }
 
         .powerup-item strong {
-            color: #ffd700;
+            color: #4dd0e1;
         }
 
         /* ===== MODES GRID ===== */
@@ -190,9 +246,9 @@
         }
 
         .mode-card {
-            background: rgba(102, 126, 234, 0.15);
+            background: rgba(77, 208, 225, 0.15);
             backdrop-filter: blur(10px);
-            border: 1px solid rgba(102, 126, 234, 0.3);
+            border: 1px solid rgba(77, 208, 225, 0.3);
             border-radius: 15px;
             padding: 25px;
             text-align: center;
@@ -201,8 +257,8 @@
 
         .mode-card:hover {
             transform: translateY(-5px);
-            background: rgba(102, 126, 234, 0.25);
-            box-shadow: 0 10px 30px rgba(102, 126, 234, 0.3);
+            background: rgba(77, 208, 225, 0.25);
+            box-shadow: 0 10px 30px rgba(77, 208, 225, 0.3);
         }
 
         .mode-icon {
@@ -213,7 +269,7 @@
         .mode-card h3 {
             font-size: 1.3em;
             margin-bottom: 10px;
-            color: #ffd700;
+            color: #4dd0e1;
         }
 
         .mode-card p {
@@ -229,14 +285,14 @@
 
         .play-button {
             display: inline-block;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background: linear-gradient(135deg, #4dd0e1 0%, #00bcd4 100%);
             color: white;
             text-decoration: none;
             padding: 20px 60px;
             border-radius: 50px;
             font-size: 1.5em;
             font-weight: 700;
-            box-shadow: 0 15px 40px rgba(102, 126, 234, 0.5);
+            box-shadow: 0 15px 40px rgba(77, 208, 225, 0.5);
             transition: all 0.3s ease;
             text-transform: uppercase;
             letter-spacing: 2px;
@@ -246,7 +302,7 @@
 
         .play-button:hover {
             transform: translateY(-5px) scale(1.05);
-            box-shadow: 0 20px 50px rgba(102, 126, 234, 0.7);
+            box-shadow: 0 20px 50px rgba(77, 208, 225, 0.7);
         }
 
         .play-button:active {
@@ -258,7 +314,7 @@
             text-align: center;
             margin-top: 40px;
             padding-top: 30px;
-            border-top: 2px solid rgba(102, 126, 234, 0.3);
+            border-top: 2px solid rgba(77, 208, 225, 0.3);
         }
 
         .intro-footer p {
@@ -268,7 +324,7 @@
         }
 
         .intro-footer strong {
-            color: #ffd700;
+            color: #4dd0e1;
         }
 
         .twitter-link {
@@ -444,18 +500,34 @@
     </style>
 </head>
 <body>
+    <!-- Animated Bubbles -->
+    <script>
+        // Create floating bubbles
+        for (let i = 0; i < 15; i++) {
+            const bubble = document.createElement('div');
+            bubble.className = 'bubble';
+            const size = 5 + Math.random() * 15;
+            bubble.style.width = size + 'px';
+            bubble.style.height = size + 'px';
+            bubble.style.left = Math.random() * 100 + '%';
+            bubble.style.animationDuration = (10 + Math.random() * 10) + 's';
+            bubble.style.animationDelay = Math.random() * 5 + 's';
+            document.body.appendChild(bubble);
+        }
+    </script>
+
     <div class="intro-container">
         <div class="intro-content">
             <!-- Header -->
             <div class="intro-header">
-                <h1>🎮 The Proof Collector</h1>
-                <p class="tagline">Verify blockchain proofs with Soundy!</p>
+                <h1>🐬 The Proof Collector</h1>
+                <p class="tagline">Swim through the blockchain ocean with Soundy the Dolphin!</p>
             </div>
 
             <!-- Game Description -->
             <div class="intro-section">
-                <h2>🎯 What's This Game About?</h2>
-                <p>Welcome to <strong>The Proof Collector</strong>! You're a blockchain validator tasked with collecting valid cryptographic proofs while avoiding fake ones. Navigate through an ever-changing field of proofs, build combos, and climb the ranks from Beginner to Legendary Prover!</p>
+                <h2>🌊 What's This Game About?</h2>
+                <p>Welcome to <strong>The Proof Collector</strong>! You're Soundy the Dolphin 🐬, swimming through the deep blockchain ocean. Your mission: collect <span class="valid">⚡ Valid ZK Proofs</span> while avoiding <span class="fake">❌ Invalid Proofs</span>. Navigate through animated waves, rising bubbles, and glowing proofs. Build combos and climb the ranks from Beginner to Legendary Prover!</p>
             </div>
 
             <!-- How to Play -->
@@ -463,29 +535,29 @@
                 <h2>🎮 How to Play</h2>
                 <div class="instructions-grid">
                     <div class="instruction-card">
-                        <div class="instruction-icon">🎯</div>
+                        <div class="instruction-icon">🐬</div>
                         <h3>Objective</h3>
-                        <p>Collect <span class="valid">✓ Valid Proofs</span> (green) and avoid <span class="fake">✗ Fake Proofs</span> (red)</p>
+                        <p>Swim and collect <span class="valid">⚡ Valid Proofs</span> (green lightning) and avoid <span class="fake">❌ Invalid Proofs</span> (red X)</p>
                     </div>
 
                     <div class="instruction-card">
                         <div class="instruction-icon">🎮</div>
                         <h3>Controls</h3>
                         <p><strong>Desktop:</strong> Arrow Keys or WASD</p>
-                        <p><strong>Mobile:</strong> Swipe to move</p>
+                        <p><strong>Mobile:</strong> Swipe to swim</p>
                     </div>
 
                     <div class="instruction-card">
                         <div class="instruction-icon">📊</div>
                         <h3>Scoring</h3>
-                        <p>✅ Valid: <strong>+10 points</strong></p>
-                        <p>❌ Fake: <strong>-5 points & -1 life</strong></p>
+                        <p>⚡ Valid: <strong>+10 points</strong></p>
+                        <p>❌ Invalid: <strong>-5 points & -1 life</strong></p>
                     </div>
 
                     <div class="instruction-card">
                         <div class="instruction-icon">🔥</div>
                         <h3>Combos</h3>
-                        <p>Chain 5+ valid proofs for bonus points and special rewards!</p>
+                        <p>Chain 5+ valid proofs for bonus points and epic rewards!</p>
                     </div>
                 </div>
             </div>
@@ -494,11 +566,12 @@
             <div class="intro-section">
                 <h2>⚡ Power-ups</h2>
                 <div class="powerups-grid">
-                    <div class="powerup-item">🛡️ <strong>Shield</strong> - Protection from fakes</div>
+                    <div class="powerup-item">🛡️ <strong>Shield</strong> - Protection from invalids</div>
                     <div class="powerup-item">❄️ <strong>Freeze</strong> - Slows down time</div>
                     <div class="powerup-item">⭐ <strong>2x Points</strong> - Double score</div>
                     <div class="powerup-item">💛 <strong>Extra Life</strong> - One more chance</div>
                     <div class="powerup-item">🔷 <strong>Soundness Boost</strong> - 2x combo multiplier</div>
+                    <div class="powerup-item">🧲 <strong>Magnet</strong> - Auto-attract valid proofs</div>
                 </div>
             </div>
 
@@ -519,7 +592,7 @@
                     <div class="mode-card">
                         <div class="mode-icon">♾️</div>
                         <h3>Endless</h3>
-                        <p>Survive forever!</p>
+                        <p>Swim forever!</p>
                     </div>
                 </div>
             </div>
@@ -527,7 +600,7 @@
             <!-- Play Button -->
             <div class="play-button-container">
                 <button class="play-button" onclick="sessionStorage.setItem('gameStarted', 'true'); window.location.href='game.html';">
-                    🚀 Play Game
+                    🌊 Dive In!
                 </button>
             </div>
 

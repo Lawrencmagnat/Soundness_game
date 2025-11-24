@@ -1,4 +1,94 @@
-/* ===== RESET & BASE STYLES ===== */
+/* ===== GAME BOARD WITH OCEAN ANIMATION ===== */
+#gameBoard {
+    position: relative;
+    width: 100%;
+    max-width: 700px;
+    height: 500px;
+    background: linear-gradient(180deg, #1a4d6d 0%, #0a2540 50%, #051525 100%);
+    border-radius: 15px;
+    margin: 0 auto 20px;
+    overflow: hidden;
+    box-shadow: inset 0 0 30px rgba(0, 0, 0, 0.5), 0 10px 40px rgba(0, 0, 0, 0.3);
+    border: 2px solid rgba(102, 126, 234, 0.3);
+    transition: all 0.5s ease;
+}
+
+/* Animated ocean waves overlay */
+#gameBoard::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 200%;
+    height: 100%;
+    background: repeating-linear-gradient(
+        90deg,
+        transparent 0px,
+        rgba(255, 255, 255, 0.03) 40px,
+        transparent 80px
+    );
+    animation: waves 20s linear infinite;
+    pointer-events: none;
+    z-index: 1;
+}
+
+/* Animated light rays */
+#gameBoard::after {
+    content: '';
+    position: absolute;
+    top: -50%;
+    left: -50%;
+    width: 200%;
+    height: 200%;
+    background: repeating-linear-gradient(
+        45deg,
+        transparent 0px,
+        rgba(173, 216, 230, 0.05) 100px,
+        transparent 200px
+    );
+    animation: lightRays 15s linear infinite;
+    pointer-events: none;
+    z-index: 1;
+}
+
+@keyframes waves {
+    0% { transform: translateX(0); }
+    100% { transform: translateX(50%); }
+}
+
+@keyframes lightRays {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+/* Floating bubbles */
+.bubble {
+    position: absolute;
+    bottom: -50px;
+    background: radial-gradient(circle at 30% 30%, rgba(255, 255, 255, 0.8), rgba(173, 216, 230, 0.4));
+    border-radius: 50%;
+    opacity: 0.6;
+    pointer-events: none;
+    z-index: 2;
+    animation: floatUp linear infinite;
+}
+
+@keyframes floatUp {
+    0% {
+        transform: translateY(0) translateX(0);
+        opacity: 0;
+    }
+    10% {
+        opacity: 0.6;
+    }
+    90% {
+        opacity: 0.6;
+    }
+    100% {
+        transform: translateY(-600px) translateX(30px);
+        opacity: 0;
+    }
+}/* ===== RESET & BASE STYLES ===== */
 * {
     margin: 0;
     padding: 0;
@@ -80,12 +170,6 @@ body {
     
     .game-wrapper {
         padding-right: 20px;
-    }
-}
-
-@media (max-width: 1100px) {
-    .game-container {
-        max-width: 100%;
     }
 }
 
@@ -341,40 +425,6 @@ h1 {
     transition: all 0.5s ease;
 }
 
-@media (max-width: 1400px) {
-    #gameBoard {
-        max-width: 600px;
-        height: 450px;
-    }
-}
-
-@media (max-width: 1200px) {
-    #gameBoard {
-        max-width: 550px;
-        height: 420px;
-    }
-}
-
-@media (max-width: 900px) {
-    #gameBoard {
-        max-width: 500px;
-        height: 400px;
-    }
-}
-
-@media (max-width: 768px) {
-    #gameBoard {
-        max-width: 100%;
-        height: 400px;
-    }
-}
-
-@media (max-width: 480px) {
-    #gameBoard {
-        height: 350px;
-    }
-}
-
 #gameBoard.shake {
     animation: shake 0.3s ease;
 }
@@ -406,7 +456,7 @@ h1 {
     border-color: rgba(251, 191, 36, 0.5);
 }
 
-/* ===== PLAYER WITH TRANSFORMS ===== */
+/* ===== ANIMATED DOLPHIN PLAYER ===== */
 .player {
     position: absolute;
     width: 45px;
@@ -418,6 +468,79 @@ h1 {
     z-index: 10;
     will-change: transform;
     filter: drop-shadow(0 4px 12px rgba(102, 126, 234, 0.6));
+}
+
+/* Animate the emoji directly without pseudo-elements */
+.player {
+    line-height: 1;
+}
+
+/* Idle swimming animation - applies to the div itself for emoji inside */
+.player.idle {
+    animation: dolphinIdle 2s ease-in-out infinite;
+}
+
+@keyframes dolphinIdle {
+    0%, 100% { 
+        filter: drop-shadow(0 4px 12px rgba(102, 126, 234, 0.6));
+    }
+    50% { 
+        filter: drop-shadow(0 6px 16px rgba(102, 126, 234, 0.8));
+    }
+}
+
+/* Swimming animation when moving */
+.player.swimming {
+    animation: dolphinSwim 0.4s ease-in-out infinite;
+}
+
+@keyframes dolphinSwim {
+    0%, 100% { 
+        filter: drop-shadow(0 4px 12px rgba(102, 126, 234, 0.6));
+    }
+    50% { 
+        filter: drop-shadow(0 8px 20px rgba(102, 126, 234, 0.9)) brightness(1.1);
+    }
+}
+
+/* For directional animations, we'll use a subtle scale/rotate effect via JavaScript */
+.player.swim-left {
+    filter: drop-shadow(-2px 4px 12px rgba(102, 126, 234, 0.8));
+}
+
+.player.swim-right {
+    filter: drop-shadow(2px 4px 12px rgba(102, 126, 234, 0.8));
+}
+
+.player.swim-up {
+    filter: drop-shadow(0 2px 16px rgba(102, 126, 234, 0.8));
+}
+
+.player.swim-down {
+    filter: drop-shadow(0 6px 16px rgba(102, 126, 234, 0.8));
+}
+
+/* Water trail behind dolphin */
+.water-trail {
+    position: absolute;
+    width: 20px;
+    height: 20px;
+    background: radial-gradient(circle, rgba(173, 216, 230, 0.6) 0%, transparent 70%);
+    border-radius: 50%;
+    pointer-events: none;
+    animation: trailFade 0.6s ease-out;
+    z-index: 5;
+}
+
+@keyframes trailFade {
+    from { 
+        opacity: 1; 
+        transform: scale(1); 
+    }
+    to { 
+        opacity: 0; 
+        transform: scale(2); 
+    }
 }
 
 .player.invincible {
@@ -444,7 +567,7 @@ h1 {
     position: absolute;
     width: 15px;
     height: 15px;
-    background: radial-gradient(circle, rgba(102, 126, 234, 0.6) 0%, transparent 70%);
+    background: radial-gradient(circle, rgba(173, 216, 230, 0.6) 0%, transparent 70%);
     border-radius: 50%;
     pointer-events: none;
     animation: trailFade 0.4s ease-out;
@@ -456,7 +579,7 @@ h1 {
     to { opacity: 0; transform: scale(0.3); }
 }
 
-/* ===== PROOFS ===== */
+/* ===== PROOFS AS SEA CREATURES ===== */
 .proof {
     position: absolute;
     width: 32px;
@@ -476,13 +599,33 @@ h1 {
 .valid-proof {
     background: linear-gradient(135deg, #48bb78 0%, #38a169 100%);
     color: white;
-    box-shadow: 0 4px 15px rgba(72, 187, 120, 0.5);
+    box-shadow: 0 4px 15px rgba(72, 187, 120, 0.5), 0 0 20px rgba(72, 187, 120, 0.3);
+    animation: proofFloat 2s ease-in-out infinite, validGlow 2s ease-in-out infinite;
 }
 
 .fake-proof {
     background: linear-gradient(135deg, #f56565 0%, #e53e3e 100%);
     color: white;
-    box-shadow: 0 4px 15px rgba(245, 101, 101, 0.5);
+    box-shadow: 0 4px 15px rgba(245, 101, 101, 0.5), 0 0 20px rgba(245, 101, 101, 0.3);
+    animation: proofFloat 2s ease-in-out infinite, dangerPulse 1s ease-in-out infinite;
+}
+
+@keyframes validGlow {
+    0%, 100% { 
+        box-shadow: 0 4px 15px rgba(72, 187, 120, 0.5), 0 0 20px rgba(72, 187, 120, 0.3);
+    }
+    50% { 
+        box-shadow: 0 4px 20px rgba(72, 187, 120, 0.8), 0 0 30px rgba(72, 187, 120, 0.6);
+    }
+}
+
+@keyframes dangerPulse {
+    0%, 100% { 
+        transform: scale(1);
+    }
+    50% { 
+        transform: scale(1.05);
+    }
 }
 
 .proof:hover {
@@ -594,34 +737,33 @@ h1 {
     to { opacity: 0; transform: translateY(-50px); }
 }
 
-/* ===== NOTIFICATIONS ===== */
+/* ===== NOTIFICATIONS (FIXED - TOP POSITION) ===== */
 .notification {
     position: absolute;
-    top: 50%;
+    top: 20px;
     left: 50%;
-    transform: translate(-50%, -50%);
+    transform: translateX(-50%);
     background: rgba(26, 32, 44, 0.95);
     backdrop-filter: blur(10px);
     border: 2px solid rgba(102, 126, 234, 0.5);
     color: white;
-    padding: 15px 30px;
-    border-radius: 15px;
-    font-size: 20px;
+    padding: 12px 25px;
+    border-radius: 12px;
+    font-size: 16px;
     font-weight: bold;
     z-index: 30;
     box-shadow: 0 10px 40px rgba(0, 0, 0, 0.5);
-    animation: notificationShow 2.5s ease;
+    animation: notificationSlide 2s ease;
     pointer-events: none;
     max-width: 80%;
     text-align: center;
 }
 
-@keyframes notificationShow {
-    0% { opacity: 0; transform: translate(-50%, -50%) scale(0.5); }
-    10% { opacity: 1; transform: translate(-50%, -50%) scale(1.1); }
-    20% { transform: translate(-50%, -50%) scale(1); }
-    90% { opacity: 1; }
-    100% { opacity: 0; }
+@keyframes notificationSlide {
+    0% { opacity: 0; transform: translateX(-50%) translateY(-20px); }
+    10% { opacity: 1; transform: translateX(-50%) translateY(0); }
+    90% { opacity: 1; transform: translateX(-50%) translateY(0); }
+    100% { opacity: 0; transform: translateX(-50%) translateY(-20px); }
 }
 
 /* ===== INTRO/MODE SELECTION SCREEN ===== */
@@ -1191,6 +1333,12 @@ h1 {
         font-size: 0.75em;
         padding: 6px 10px;
     }
+    
+    .notification {
+        font-size: 14px;
+        padding: 10px 20px;
+        top: 15px;
+    }
 }
 
 @media (max-width: 480px) {
@@ -1355,6 +1503,12 @@ h1 {
         font-size: 0.7em;
         padding: 5px 8px;
     }
+    
+    .notification {
+        font-size: 12px;
+        padding: 8px 15px;
+        top: 10px;
+    }
 }
 
 @media (max-width: 360px) {
@@ -1398,88 +1552,4 @@ h1 {
 .score-sidebar::-webkit-scrollbar-thumb:hover,
 .move-history::-webkit-scrollbar-thumb:hover {
     background: rgba(102, 126, 234, 0.7);
-}
-
-/* ===== FIX FOR ELEMENTS GOING OUTSIDE CONTAINER ===== */
-/* Ensure game board is always contained */
-#gameBoard {
-    position: relative;
-    overflow: hidden !important;
-}
-
-/* Force all children to stay within bounds */
-#gameBoard > * {
-    max-width: 100%;
-    max-height: 100%;
-}
-
-.proof, .powerup, .player, .trail, .particle, .feedback, .notification {
-    position: absolute !important;
-}
-
-/* Prevent any overflow */
-.proof {
-    max-width: 32px;
-    max-height: 32px;
-}
-
-.powerup {
-    max-width: 45px;
-    max-height: 45px;
-}
-
-.player {
-    max-width: 45px;
-    max-height: 45px;
-}
-
-/* Mobile specific constraints */
-@media (max-width: 768px) {
-    #gameBoard {
-        position: relative;
-        overflow: hidden !important;
-        contain: layout style paint;
-    }
-    
-    .proof {
-        max-width: 28px;
-        max-height: 28px;
-    }
-    
-    .powerup {
-        max-width: 38px;
-        max-height: 38px;
-    }
-    
-    .player {
-        max-width: 35px;
-        max-height: 35px;
-    }
-}
-
-@media (max-width: 480px) {
-    .proof {
-        width: 24px !important;
-        height: 24px !important;
-        font-size: 16px !important;
-    }
-    
-    .powerup {
-        width: 32px !important;
-        height: 32px !important;
-        font-size: 18px !important;
-    }
-    
-    .powerup.combo-boost,
-    .powerup.magnet {
-        width: 35px !important;
-        height: 35px !important;
-        font-size: 22px !important;
-    }
-    
-    .player {
-        width: 32px !important;
-        height: 32px !important;
-        font-size: 26px !important;
-    }
 }

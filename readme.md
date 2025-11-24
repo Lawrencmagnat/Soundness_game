@@ -361,6 +361,6 @@ Enjoy playing The Proof Collector and become a Legendary Prover! 🚀
 
 Made with ❤️ by Casp3r
 
-**[Play Game](https://your-game-url.vercel.app)** • **[Report Bug](https://github.com/yourusername/proof-collector/issues)** • **[Request Feature](https://github.com/yourusername/proof-collector/issues)**
+**[Play Game](https://soundness-game-ktga.vercel.app/index.html)** • **[Report Bug](https://github.com/Lawrencmagnat/proof-collector/issues)** • **[Request Feature](https://github.com/Lawrencmagnat/proof-collector/issues)**
 
 </div>
